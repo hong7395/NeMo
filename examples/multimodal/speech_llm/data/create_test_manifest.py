@@ -4,8 +4,8 @@ from pydub.utils import mediainfo  # 오디오 길이 계산용
 from tqdm import tqdm  # 진행도 표시
 
 # 데이터 디렉토리 설정
-data_dir = "examples/multimodal/speech_llm/data/LibriSpeech/test-clean"
-output_jsonl = "examples/multimodal/speech_llm/data/test_manifest.jsonl"
+data_dir = "./LibriSpeech/test-clean"
+output_jsonl = "./test_manifest.jsonl"
 
 # JSONL 생성
 data = []
