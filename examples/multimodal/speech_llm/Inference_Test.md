@@ -18,7 +18,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox
     ```
 3. Python 가상환경 생성 및 활성화:
     ```bash
