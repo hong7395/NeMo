@@ -34,6 +34,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```bash
     # 의존성 때문에 numpy 먼저 설치
     pip install numpy
+    pip install typing_extensions
     pip install -r requirements.txt
     ```
 6. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:

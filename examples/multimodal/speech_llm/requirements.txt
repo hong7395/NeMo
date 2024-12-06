@@ -1,5 +1,6 @@
 wheel
 numpy
+typing_extensions
 omegaconf
 huggingface_hub>=0.24
 numba
