@@ -109,12 +109,12 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     print(f"test_manifest.jsonl 생성 완료: {output_jsonl}")
     ```
 스크립트 실행:
-    ```bash
+```bash
     python ~/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
 
     # speech_llm 디렉터리로 돌아감
     cd ..
-    ```
+```
 ## 2. 모델 준비
 ### 2.1 Fast Conformer 모델 다운로드
 사전 학습된 `stt_en_fastconformer_transducer_large.nemo` 모델을 다운로드하여 models 폴더에 저장합니다:
