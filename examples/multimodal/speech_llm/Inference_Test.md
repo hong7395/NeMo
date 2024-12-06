@@ -57,8 +57,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 
 `test_manifest.jsonl` 생성 스크립트:
 다음 스크립트를 `create_test_manifest.py`로 저장하세요:
-
-    ```python
+```python
     import os
     import json
     from pydub.utils import mediainfo  # 오디오 길이 계산용
@@ -107,7 +106,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
             f.write(json.dumps(item) + "\n")
 
     print(f"test_manifest.jsonl 생성 완료: {output_jsonl}")
-    ```
+```
 스크립트 실행:
 ```bash
     python ~/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
