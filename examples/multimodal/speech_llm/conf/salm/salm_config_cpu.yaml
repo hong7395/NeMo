@@ -71,7 +71,7 @@ model:
 
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: "./examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo" # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: "~/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo" # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
@@ -293,7 +293,7 @@ model:
         num_classes: null
 
     test_ds:
-      manifest_filepath: "./examples/multimodal/speech_llm/data/test_manifest.jsonl" # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      manifest_filepath: "~/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl" # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       names: null # Names of the corresponding datasets used to log metrics.
       global_batch_size: ${model.global_batch_size}
       micro_batch_size: ${model.micro_batch_size}

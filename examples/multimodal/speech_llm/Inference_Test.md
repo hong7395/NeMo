@@ -124,7 +124,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ```
 ## 3. 설정 파일 작성
 ### 3.1 `salm_config_cpu.yaml` 파일
-다음과 같이 설정 파일을 작성하고 `conf` 폴더에 저장합니다:
+다음과 같이 설정 파일을 작성하고 `conf/salm` 폴더에 저장합니다:
 ```yaml
     name: salm_fastconformer_gpt_lora_tuning
 
@@ -143,12 +143,12 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     pipeline_model_parallel_size: 1
     pretrained_audio_model: stt_en_fastconformer_transducer_large
     freeze_llm: true
-    restore_from_path: "./examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
+    restore_from_path: "~/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
     save_nemo_on_validation_end: false
 
     data:
     test_ds:
-        manifest_filepath: "./examples/multimodal/speech_llm/data/test_manifest.jsonl"
+        manifest_filepath: "~/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
         prompt_template: "Q: {context}\\nA: {answer}"
         tokens_to_generate: 128
         shuffle: false
@@ -177,7 +177,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python ./modular_audio_gpt_eval.py --config-path=conf --config-name=salm_config_cpu.yaml
+    python ./modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config_cpu.yaml
     ```
 2. 결과 확인:
 
