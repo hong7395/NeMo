@@ -32,9 +32,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```
 5. 필수 라이브러리 설치
     ```bash
-    # 의존성 때문에 numpy 먼저 설치
-    pip install numpy
-    pip install -r requirements.txt -r requirements_asr.txt -r requirements_common.txt
+    pip install -r requirements.txt
     ```
 
 ## 1. 데이터셋 준비
