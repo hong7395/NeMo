@@ -177,7 +177,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python ./modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config_cpu.yaml
+    python ~/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config_cpu.yaml
     ```
 2. 결과 확인:
 
