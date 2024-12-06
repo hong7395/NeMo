@@ -117,15 +117,13 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 2. 모델 준비
 ### 2.1 Fast Conformer 모델 다운로드
 사전 학습된 `stt_en_fastconformer_transducer_large.nemo` 모델을 다운로드하여 models 폴더에 저장합니다:
-
-    ```bash
+```bash
     wget https://api.ngc.nvidia.com/v2/models/nvidia/nemo/stt_en_fastconformer_transducer_large/versions/1.0.0/files/stt_en_fastconformer_transducer_large.nemo -O ./models/stt_en_fastconformer_transducer_large.nemo
-    ```
+```
 ## 3. 설정 파일 작성
 ### 3.1 `salm_config_cpu.yaml` 파일
 다음과 같이 설정 파일을 작성하고 `conf` 폴더에 저장합니다:
-
-    ```yaml
+```yaml
     name: salm_fastconformer_gpt_lora_tuning
 
     trainer:
@@ -173,10 +171,9 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
         warmup_steps: 2000
         min_lr: 0.0
         constant_steps: 0
-    ```
+```
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
-
     ```bash
     python ./modular_audio_gpt_eval.py --config-path=conf --config-name=salm_config_cpu.yaml
     ```
@@ -186,9 +183,9 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 
 ### 추가 참고 사항
 필요 라이브러리 설치:
-    ```bash
+```bash
     pip install pydub soundfile tqdm
-    JSONL 파일과 모델 경로가 정확히 설정되었는지 확인하세요.
-    ```
+    #JSONL 파일과 모델 경로가 정확히 설정되었는지 확인하세요.
+```
     
 위 가이드는 SALM 모델을 사용한 추론을 실행하기 위한 전체 과정을 포함합니다. 추가 질문이 있으면 언제든 말씀해주세요!
