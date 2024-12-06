@@ -8,7 +8,7 @@
 
 ### 0.1 인스턴스 생성
 Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
-스토리지 용량 16G 설정
+스토리지 용량 50G 설정
 
 ### 0.2 패키지 업데이트
 #### 단계:
@@ -119,6 +119,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ### 2.1 Fast Conformer 모델 다운로드
 사전 학습된 `stt_en_fastconformer_transducer_large.nemo` 모델을 다운로드하여 models 폴더에 저장합니다:
 ```bash
+    mkdir models
     wget https://api.ngc.nvidia.com/v2/models/nvidia/nemo/stt_en_fastconformer_transducer_large/versions/1.0.0/files/stt_en_fastconformer_transducer_large.nemo -O ./models/stt_en_fastconformer_transducer_large.nemo
 ```
 ## 3. 설정 파일 작성
