@@ -18,7 +18,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
     ```
 3. Python 가상환경 생성 및 활성화:
     ```bash
@@ -32,6 +32,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```
 5. 필수 라이브러리 설치
     ```bash
+    # 의존성 때문에 numpy 먼저 설치
     pip install numpy
     pip install -r requirements.txt -r requirements_asr.txt -r requirements_common.txt
     ```
