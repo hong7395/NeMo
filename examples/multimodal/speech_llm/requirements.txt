@@ -1,5 +1,5 @@
 wheel
-numpy>=1.22
+numpy
 omegaconf
 huggingface_hub>=0.24
 numba

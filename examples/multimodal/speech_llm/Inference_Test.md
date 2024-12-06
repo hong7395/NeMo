@@ -34,6 +34,27 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```bash
     pip install -r requirements.txt
     ```
+6. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정
+    6-1. 4GB 스왑 파일 생성
+    ```bash
+    sudo fallocate -l 4G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    ```
+    6-2. 스왑 활성화 확인
+    ```bash
+    free -h
+    ```
+    6-3. Torch 설치 재시도
+    ```bash
+    pip install torch
+    ```
+    6-4. 설치 완료 후 스왑 비활성화(선택)
+    ```bash
+    sudo swapoff /swapfile
+    sudo rm /swapfile
+    ```
 
 ## 1. 데이터셋 준비
 
