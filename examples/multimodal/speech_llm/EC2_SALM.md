@@ -7,8 +7,11 @@
 ## 0. EC2 설정
 
 ### 0.1 인스턴스 생성
-Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
-스토리지 용량 50G 설정
+Ubuntu 22.04 인스턴스 생성
+인스턴스 : g4dn.xlarge - T4
+(p2.xlarge - K80)
+볼륨 : 최소로 설정 (125 + 8 GB)
+탄력적 IP 설정
 
 ### 0.2 패키지 업데이트
 #### 단계:
@@ -20,7 +23,45 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
     ```bash
     sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
     ```
-3. Python 가상환경 생성 및 활성화:
+3. NVIDIA 드라이버 및 CUDA 설치:
+    3-1. GPU 확인:
+    ```bash
+    lspci | grep -i nvidia
+    ```
+    3-2. gcc 설치:
+    ```bash
+    sudo apt install gcc -y
+    ```
+    3-3. Linux Kernel Header 설치:
+    ```bash
+    sudo apt install linux-headers-$(uname -r)
+    ```
+    3-4. ubuntu-drivers 설치:
+    ```bash
+    sudo apt install ubuntu-drivers-common -y
+    ```
+    3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
+    ```bash
+    ubuntu-drivers devices
+    ```
+    3-6. 설치할 Driver 버전을 위한 Repository를 추가:
+    ```bash
+    distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
+    wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
+    sudo dpkg -i cuda-keyring_1.0-1_all.deb
+
+    # Repository 추가된 것을 확인
+    cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
+    ```
+    3-7. nvidia-driver 설치:
+    ```bash
+    sudo apt install nvidia-driver-???
+    ```
+    3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
+    ```bash
+    nvidia-smi
+    ```
+4. Python 가상환경 생성 및 활성화:
     ```bash
     python3 -m venv salm_env
     source salm_env/bin/activate
@@ -28,7 +69,7 @@ Ubuntu 22.04 인스턴스 생성 (테스트용으로 프리 티어 생성)
 4. NeMo GitHub 리포지토리 클론
     ```bash
     git clone https://github.com/hong7395/NeMo.git
-    cd NeMo/examples/multimodal/speech_llm
+    cd ~/NeMo/examples/multimodal/speech_llm
     ```
 5. 필수 라이브러리 설치
     ```bash
