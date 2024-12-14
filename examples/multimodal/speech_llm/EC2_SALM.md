@@ -8,43 +8,63 @@
 
 ### 0.1 인스턴스 생성
 Ubuntu 22.04 인스턴스 생성
+
 인스턴스 : g4dn.xlarge - T4
+
 (p2.xlarge - K80)
+
 볼륨 : 최소로 설정 (125 + 8 GB)
+
 탄력적 IP 설정
 
 ### 0.2 패키지 업데이트
 #### 단계:
 1. EC2 인스턴스에 접속 후 패키지 목록을 업데이트합니다:
+
     ```bash
     sudo apt update && sudo apt upgrade -y
     ```
+
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
+
     ```bash
     sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
     ```
+
 3. NVIDIA 드라이버 및 CUDA 설치:
+
     3-1. GPU 확인:
+
     ```bash
     lspci | grep -i nvidia
     ```
+
     3-2. gcc 설치:
+
     ```bash
     sudo apt install gcc -y
     ```
+
     3-3. Linux Kernel Header 설치:
+
     ```bash
     sudo apt install linux-headers-$(uname -r)
     ```
+
     3-4. ubuntu-drivers 설치:
+
     ```bash
     sudo apt install ubuntu-drivers-common -y
     ```
+
     3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
+
     ```bash
     ubuntu-drivers devices
     ```
+
     3-6. 설치할 Driver 버전을 위한 Repository를 추가:
+
     ```bash
     distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
     wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
@@ -53,48 +73,67 @@ Ubuntu 22.04 인스턴스 생성
     # Repository 추가된 것을 확인
     cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
     ```
+
     3-7. nvidia-driver 설치:
+
     ```bash
     sudo apt install nvidia-driver-???
     ```
+
     3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
+
     ```bash
     nvidia-smi
     ```
+
 4. Python 가상환경 생성 및 활성화:
+
     ```bash
     python3 -m venv salm_env
     source salm_env/bin/activate
     ```
+
 4. NeMo GitHub 리포지토리 클론
+
     ```bash
     git clone https://github.com/hong7395/NeMo.git
     cd ~/NeMo/examples/multimodal/speech_llm
     ```
+
 5. 필수 라이브러리 설치
+
     ```bash
     # 의존성 때문에 numpy 먼저 설치
     pip install numpy
     pip install typing_extensions
     pip install -r requirements.txt
     ```
+
 6. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+
     6-1. 4GB 스왑 파일 생성:
+
     ```bash
     sudo fallocate -l 4G /swapfile
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
     sudo swapon /swapfile
     ```
+
     6-2. 스왑 활성화 확인:
+
     ```bash
     free -h
     ```
+
     6-3. Torch 설치 재시도:
+
     ```bash
     pip install torch
     ```
+
     6-4. 설치 완료 후 스왑 비활성화(선택):
+
     ```bash
     sudo swapoff /swapfile
     sudo rm /swapfile
@@ -117,9 +156,11 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     ```
 ### 1.2 JSONL 매니페스트 파일 생성
 오디오 파일과 전사 텍스트를 매핑하는 JSONL 파일을 생성합니다.
+
 (현재 위치 디렉토리 : ~/NeMo/examples/multimodal/speech_llm/data)
 
 `test_manifest.jsonl` 생성 스크립트:
+
 다음 스크립트를 `create_test_manifest.py`로 저장하세요:
 ```python
     import os
