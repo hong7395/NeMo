@@ -9,9 +9,7 @@
 ### 0.1 인스턴스 생성
 Ubuntu 22.04 인스턴스 생성
 
-인스턴스 : g4dn.xlarge - T4
-
-(p2.xlarge - K80)
+인스턴스 : g4dn.xlarge - T4 (p2.xlarge - K80, p4d.24xlarge - A100)
 
 볼륨 : 최소로 설정 (125 + 8 GB)
 
@@ -86,6 +84,46 @@ Ubuntu 22.04 인스턴스 생성
     nvidia-smi
     ```
 
+    3-9. CUDA 11.8 설치:
+
+    ```bash
+    wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+    sudo sh cuda_11.8.0_520.61.05_linux.run
+    ```
+
+    경로 설정:
+    
+    ```bash
+    gedit ~/.bashrc
+
+    export PATH="/usr/local/cuda/bin:$PATH"
+    export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+
+    source ~/.bashrc
+    ```
+
+    설치 확인:
+    
+    ```bash
+    nvcc -V
+    ```
+
+    3-10. cuDNN 설치:
+
+    ```bash
+    wget https://developer.nvidia.com/compute/cudnn/secure/8.6.0/local_installers/11.8/cudnn-local-repo-ubuntu2204-8.6.0.163_1.0-1_amd64.deb
+    sudo dpkg -i cudnn-local-repo-ubuntu2204-8.6.0.163_1.0-1_amd64.deb
+    sudo cp /var/cudnn-local-repo-ubuntu2204-8.6.0/cudnn-*-keyring.gpg /usr/share/keyrings/
+    sudo apt-get update
+    sudo apt-get -y install cudnn
+    ```
+
+    설치 확인:
+    
+    ```bash
+    ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
+    ```
+
 4. Python 가상환경 생성 및 활성화:
 
     ```bash
@@ -97,16 +135,16 @@ Ubuntu 22.04 인스턴스 생성
 
     ```bash
     git clone https://github.com/hong7395/NeMo.git
-    cd ~/NeMo/examples/multimodal/speech_llm
+    cd ~/NeMo
     ```
 
-5. 필수 라이브러리 설치
+5. NeMo 설치
 
     ```bash
-    # 의존성 때문에 numpy 먼저 설치
-    pip install numpy
-    pip install typing_extensions
-    pip install -r requirements.txt
+    pip install nemo_toolkit['all']
+
+    # 설치가 안된다면,
+    pip install nemo_toolkit['asr']
     ```
 
 6. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
@@ -293,5 +331,3 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     pip install pydub soundfile tqdm
     #JSONL 파일과 모델 경로가 정확히 설정되었는지 확인하세요.
 ```
-    
-위 가이드는 SALM 모델을 사용한 추론을 실행하기 위한 전체 과정을 포함합니다. 추가 질문이 있으면 언제든 말씀해주세요!
