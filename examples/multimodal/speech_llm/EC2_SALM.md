@@ -11,11 +11,11 @@ Ubuntu 22.04 인스턴스 생성
 
 인스턴스 : g4dn.xlarge - T4 (p2.xlarge - K80, p4d.24xlarge - A100)
 
-볼륨 : 최소로 설정 (125 + 8 GB)
+볼륨 : 32 + 125 GB
 
 탄력적 IP 설정
 
-### 0.2 패키지 업데이트
+### 0.2 패키지 업데이트, NVIDIA Driver 설치, 디스크 마운트 및 프로젝트 준비
 #### 단계:
 1. EC2 인스턴스에 접속 후 패키지 목록을 업데이트합니다:
 
@@ -124,21 +124,107 @@ Ubuntu 22.04 인스턴스 생성
     ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
     ```
 
-4. Python 가상환경 생성 및 활성화:
+4. 추가 디스크 마운트 (옵션):
+
+    4-1. 디스크 확인:
 
     ```bash
-    python3 -m venv salm_env
-    source salm_env/bin/activate
+    lsblk
     ```
 
-4. NeMo GitHub 리포지토리 클론
+    (`nvme1n1`이 추가 디스크임을 확인)
+
+    4-2. 디스크 파티션 생성:
+
+    만약 `nvme1n1`에 파티션이 없다면, 아래 명령으로 파티션을 생성합니다:
 
     ```bash
+    sudo fdisk /dev/nvme1n1
+    ```
+
+        1. `n` → 새 파티션 생성.
+
+        2. `p` → 기본 파티션.
+
+        3. 기본값(시작/끝 섹터) 그대로 Enter.
+
+        4. `w` → 변경사항 저장 및 종료.
+
+    4-3. 파일 시스템 생성:
+
+    ```bash
+    sudo mkfs.ext4 /dev/nvme1n1p1
+    ```
+
+    4-4. 디스크 마운트:
+
+        1. 추가 디스크를 마운트할 디렉토리 생성:
+
+        ```bash
+        sudo mkdir /mnt/storage
+        ```
+
+        2. 디스크 마운트:
+
+        ```bash
+        sudo mount /dev/nvme1n1p1 /mnt/storage
+        ```
+
+        3. 마운트 확인:
+
+        ```bash
+        df -h
+        ```
+
+        `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
+
+    4-5. 영구 마운트 설정 (재부팅 후에도 유지):
+
+        1. `/etc/fstab` 파일에 추가:
+
+        ```bash
+        echo '/dev/nvme1n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+        ```
+
+        2. 설정 적용:
+
+        ```bash
+        sudo mount -a
+        ```
+
+5. Git 프로젝트 클론:
+
+    ```bash
+    mkdir -p /mnt/storage/projects
+
+    cd /mnt/storage/projects
     git clone https://github.com/hong7395/NeMo.git
-    cd ~/NeMo
+    cd NeMo
     ```
 
-5. NeMo 설치
+6. Python 가상환경 생성 및 활성화:
+
+    6-1. 가상환경 생성:
+
+    ```bash
+    python3 -m venv /mnt/storage/projects/NeMo/venv
+    ```
+
+    6-2. 가상환경 활성화:
+
+    ```bash
+    source /mnt/storage/projects/NeMo/venv/bin/activate
+    ```
+
+    6-3. 가상환경에서 Python 확인:
+
+    ```bash
+    which python
+    ```
+
+    출력: `/mnt/storage/projects/repo/venv/bin/python`
+
+7. NeMo 설치
 
     ```bash
     pip install nemo_toolkit['all']
@@ -147,9 +233,13 @@ Ubuntu 22.04 인스턴스 생성
     pip install nemo_toolkit['asr']
     ```
 
-6. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+    패키지들은 추가 디스크의 가상환경 내부에 설치됩니다:
 
-    6-1. 4GB 스왑 파일 생성:
+    경로: `/mnt/storage/projects/NeMo/venv/lib/python3.x/site-packages`
+
+8. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+
+    8-1. 4GB 스왑 파일 생성:
 
     ```bash
     sudo fallocate -l 4G /swapfile
@@ -158,19 +248,19 @@ Ubuntu 22.04 인스턴스 생성
     sudo swapon /swapfile
     ```
 
-    6-2. 스왑 활성화 확인:
+    8-2. 스왑 활성화 확인:
 
     ```bash
     free -h
     ```
 
-    6-3. Torch 설치 재시도:
+    8-3. Torch 설치 재시도:
 
     ```bash
     pip install torch
     ```
 
-    6-4. 설치 완료 후 스왑 비활성화(선택):
+    8-4. 설치 완료 후 스왑 비활성화(선택):
 
     ```bash
     sudo swapoff /swapfile
@@ -185,17 +275,17 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 #### 단계:
 1. 데이터셋 다운로드:
     ```bash
-    cd ~/NeMo/examples/multimodal/speech_llm/data
+    cd /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data
     wget http://www.openslr.org/resources/12/test-clean.tar.gz
     ```
 2. 데이터셋 압축 해제:
     ```bash
-    tar -xvzf test-clean.tar.gz -C ~/NeMo/examples/multimodal/speech_llm/data
+    tar -xvzf test-clean.tar.gz -C /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data
     ```
 ### 1.2 JSONL 매니페스트 파일 생성
 오디오 파일과 전사 텍스트를 매핑하는 JSONL 파일을 생성합니다.
 
-(현재 위치 디렉토리 : ~/NeMo/examples/multimodal/speech_llm/data)
+(현재 위치 디렉토리 : /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data)
 
 `test_manifest.jsonl` 생성 스크립트:
 
@@ -252,7 +342,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ```
 스크립트 실행:
 ```bash
-    python ~/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
+    python /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
 
     # speech_llm 디렉터리로 돌아감
     cd ..
@@ -285,12 +375,12 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     pipeline_model_parallel_size: 1
     pretrained_audio_model: stt_en_fastconformer_transducer_large
     freeze_llm: true
-    restore_from_path: "~/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
+    restore_from_path: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
     save_nemo_on_validation_end: false
 
     data:
     test_ds:
-        manifest_filepath: "~/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
+        manifest_filepath: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
         prompt_template: "Q: {context}\\nA: {answer}"
         tokens_to_generate: 128
         shuffle: false
@@ -319,15 +409,8 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python ~/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config_cpu.yaml
+    python /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
     ```
 2. 결과 확인:
 
 추론 결과는 콘솔에 출력되거나 설정된 파일로 저장됩니다.
-
-### 추가 참고 사항
-필요 라이브러리 설치:
-```bash
-    pip install pydub soundfile tqdm
-    #JSONL 파일과 모델 경로가 정확히 설정되었는지 확인하세요.
-```

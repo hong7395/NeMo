@@ -71,7 +71,7 @@ model:
 
   global_batch_size: 128
   micro_batch_size: 4
-  restore_from_path: ??? # Path to an existing .nemo model you wish to add new tasks to or run inference with
+  restore_from_path: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo" # Path to an existing .nemo model you wish to add new tasks to or run inference with
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   save_nemo_on_validation_end: False # Saves an inference ready .nemo file every time a checkpoint is saved during training. 
   sync_batch_comm: False
@@ -222,7 +222,7 @@ model:
       # Example of how each dataset is formatted
       # {'audio_filepath': 'audio1.wav', 'offset': 0.0, 'duration': 12.3, 'question': 'transcribe this audio', 'answer': 'I have a dream...'}
       # the 'answer' field can also be 'text', and a default 'question' field is added if missing in manigests, so as to work with ASR manifests
-      manifest_filepath: ??? # Path to a list of JSONL files corresponding to the source data.
+      manifest_filepath: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/train_manifest.jsonl" # Path to a list of JSONL files corresponding to the source data.
       global_batch_size: ${model.global_batch_size}
       micro_batch_size: ${model.micro_batch_size}
       shuffle: True
@@ -261,7 +261,7 @@ model:
       # sample_alpha: 0.1
 
     validation_ds:
-      manifest_filepath: ??? # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      manifest_filepath: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/val_manifest.jsonl" # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
       global_batch_size: ${model.global_batch_size}
       micro_batch_size: ${model.micro_batch_size}
       shuffle: False
@@ -292,36 +292,38 @@ model:
         average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
         num_classes: null
 
-    # test_ds:
-    #   manifest_filepath: null # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
-    #   names: null # Names of the corresponding datasets used to log metrics.
-    #   global_batch_size: ${model.global_batch_size}
-    #   micro_batch_size: ${model.micro_batch_size}
-    #   shuffle: False
-    #   num_workers: 4
-    #   pin_memory: True
-    #   max_seq_length: 2048
-    #   min_seq_length: 1
-    #   drop_last: False
-    #   context_key: 'input'
-    #   answer_key: 'output'
-    #   add_eos: ${model.data.train_ds.add_eos}
-    #  end_string: ${model.data.end_string}
-    #   add_sep: ${model.data.train_ds.add_sep}
-    #   add_bos: ${model.data.train_ds.add_bos}
-    #   separate_prompt_and_response_with_newline: ${model.data.train_ds.separate_prompt_and_response_with_newline}
-    #   write_predictions_to_file: False
-    #   output_file_path_prefix: null # Prefix of the file to write predictions to.
-    #   truncation_field: "context" # Options: ['context', 'answer']
-    #   index_mapping_dir: null # Path to a directory to write index mapping files.
-    #   prompt_template: ${model.data.train_ds.prompt_template}
-    #   # ASR configs
-    #   sample_rate: 16000 #${model.audio_encoder.preprocessor.sample_rate}
+    test_ds:
+      manifest_filepath: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl" # Path to a list of JSONL files corresponding to the source data. Data format is identical to train_ds.
+      names: null # Names of the corresponding datasets used to log metrics.
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
+      shuffle: False
+      num_workers: 0
+      pin_memory: True
+      max_seq_length: 2048
+      min_seq_length: 1
+      drop_last: False
+      context_key: 'input'
+      answer_key: 'output'
+      add_eos: ${model.data.train_ds.add_eos}
+      end_string: ${model.data.end_string}
+      add_sep: ${model.data.train_ds.add_sep}
+      add_bos: ${model.data.train_ds.add_bos}
+      separate_prompt_and_response_with_newline: ${model.data.train_ds.separate_prompt_and_response_with_newline}
+      write_predictions_to_file: False
+      output_file_path_prefix: null # Prefix of the file to write predictions to.
+      truncation_field: "context" # Options: ['context', 'answer']
+      index_mapping_dir: null # Path to a directory to write index mapping files.
+      prompt_template: ${model.data.train_ds.prompt_template}
+      max_duration: 24
+      min_duration: 0.1
+      # ASR configs
+      sample_rate: 16000 #${model.audio_encoder.preprocessor.sample_rate}
 
-    #   metric:
-    #     name: "loss" # Name of the evaluation metric to use. Options: ['exact_string_match', 'loss']
-    #     average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
-    #     num_classes: null
+      metric:
+        name: "loss" # Name of the evaluation metric to use. Options: ['exact_string_match', 'loss']
+        average: null # Average the metric over the dataset. Options: ['macro', 'micro']. Works only for 'F1', 'accuracy' etc. Refer to torchmetrics for metrics where this is supported.
+        num_classes: null
 
   optim:
     name: fused_adam
