@@ -21,6 +21,9 @@ Ubuntu 22.04 인스턴스 생성
 
 ### 0.2 패키지 업데이트, NVIDIA Driver 설치, 디스크 마운트 및 프로젝트 준비
 #### 단계:
+
+참고: ~/ = /home/ubuntu
+
 1. EC2 인스턴스에 접속 후 패키지 목록을 업데이트합니다:
 
     ```bash
@@ -140,20 +143,20 @@ Ubuntu 22.04 인스턴스 생성
     4-1. 가상환경 생성:
 
     ```bash
-    python3 -m venv salm_env
+    python3 -m venv ~/salm_env
     ```
 
     4-2. 가상환경 활성화:
 
     ```bash
-    source salm_env/bin/activate
+    source ~/salm_env/bin/activate
     ```
 
 5. NeMo 설치
 
     ```bash
     git clone https://github.com/hong7395/NeMo.git
-    
+
     cd NeMo
 
     pip install nemo_toolkit['all']
