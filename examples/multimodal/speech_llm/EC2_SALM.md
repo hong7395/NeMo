@@ -23,45 +23,127 @@ Ubuntu 22.04 인스턴스 생성
     sudo apt update && sudo apt upgrade -y
     ```
 
-2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
+2. 추가 디스크 마운트 (옵션):
+
+    2-1. 디스크 확인:
+
+    ```bash
+    lsblk
+    ```
+
+    (추가 디스크 이름 및 `UUID` 확인, 이름 예시 : `nvme0n1`)
+
+    (다만 디스크 이름은 부팅 순서에 따라 변할 수 있음. nvme0n1 -> nvme1n1 이 되는 등 ..)
+
+    2-2. 파일 시스템 생성 (`xfs` or `ext4`):
+
+    ```bash
+    # 파일 시스템 확인
+    sudo file -s /dev/nvme0n1
+    ```
+
+    출력:
+
+    ```bash
+    /dev/nvme0n1: data
+    ```
+
+    ```bash
+    # 파일 시스템 생성
+    sudo mkfs -t xfs /dev/nvme0n1
+    ```
+
+    2-3. 디스크 마운트:
+
+    1. 추가 디스크를 마운트할 디렉토리 생성:
+
+    ```bash
+    sudo mkdir /mnt/storage
+    ```
+
+    2. 디스크 마운트:
+
+    ```bash
+    sudo mount /dev/nvme0n1 /mnt/storage
+    ```
+
+    3. 마운트 확인:
+    
+    ```bash
+    df -h
+    ```
+
+    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
+
+    2-4. 영구 마운트 설정 (재부팅 후에도 유지):
+
+    1. `/etc/fstab` 파일에 추가:
+
+    ```bash
+    echo 'UUID={추가 디스크 UUID 기입} /mnt/storage xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    ```
+
+    2. 설정 적용:
+
+    ```bash
+    sudo mount -a
+    ```
+
+    2-5. 디렉토리 권한 변경:
+
+    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
+
+    1. 디렉토리 소유권 변경:
+
+    ```bash
+    sudo chown -R $USER:$USER /mnt/storage
+    ```
+
+    2. 권한 확인:
+
+    ```bash
+    ls -ld /mnt/storage
+    ```
+
+3. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
     sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
     ```
 
-3. NVIDIA 드라이버 및 CUDA 설치:
+4. NVIDIA 드라이버 및 CUDA 설치:
 
-    3-1. GPU 확인:
+    4-1. GPU 확인:
 
     ```bash
     lspci | grep -i nvidia
     ```
 
-    3-2. gcc 설치:
+    4-2. gcc 설치:
 
     ```bash
     sudo apt install gcc -y
     ```
 
-    3-3. Linux Kernel Header 설치:
+    4-3. Linux Kernel Header 설치:
 
     ```bash
     sudo apt install linux-headers-$(uname -r)
     ```
 
-    3-4. ubuntu-drivers 설치:
+    4-4. ubuntu-drivers 설치:
 
     ```bash
     sudo apt install ubuntu-drivers-common -y
     ```
 
-    3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
+    4-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
 
     ```bash
     ubuntu-drivers devices
     ```
 
-    3-6. 설치할 Driver 버전을 위한 Repository를 추가:
+    4-6. 설치할 Driver 버전을 위한 Repository를 추가:
 
     ```bash
     distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
@@ -72,19 +154,19 @@ Ubuntu 22.04 인스턴스 생성
     cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
     ```
 
-    3-7. nvidia-driver 설치:
+    4-7. nvidia-driver 설치:
 
     ```bash
     sudo apt install nvidia-driver-???
     ```
 
-    3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
+    4-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
 
     ```bash
     nvidia-smi
     ```
 
-    3-9. CUDA 11.8 설치:
+    4-9. CUDA 11.8 설치:
 
     ```bash
     wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
@@ -118,7 +200,7 @@ Ubuntu 22.04 인스턴스 생성
     /usr/local/cuda-11.8/extras/demo_suite/deviceQuery
     ```
 
-    3-10. cuDNN 설치:
+    4-10. cuDNN 설치:
 
     ```bash
     sudo apt-get update
@@ -129,90 +211,6 @@ Ubuntu 22.04 인스턴스 생성
     
     ```bash
     ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
-    ```
-
-4. 추가 디스크 마운트 (옵션):
-
-    4-1. 디스크 확인:
-
-    ```bash
-    lsblk
-    ```
-
-    (`nvme0n1`이 추가 디스크임을 확인)
-
-    4-2. 디스크 파티션 생성:
-
-    만약 `nvme0n1`에 파티션이 없다면, 아래 명령으로 파티션을 생성합니다:
-
-    ```bash
-    sudo fdisk /dev/nvme0n1
-    ```
-
-    1. `n` → 새 파티션 생성.
-
-    2. `p` → 기본 파티션.
-
-    3. 기본값(시작/끝 섹터) 그대로 Enter.
-
-    4. `w` → 변경사항 저장 및 종료.
-
-    4-3. 파일 시스템 생성:
-
-    ```bash
-    sudo mkfs.ext4 /dev/nvme0n1p1
-    ```
-
-    4-4. 디스크 마운트:
-
-    1. 추가 디스크를 마운트할 디렉토리 생성:
-
-    ```bash
-    sudo mkdir /mnt/storage
-    ```
-
-    2. 디스크 마운트:
-
-    ```bash
-    sudo mount /dev/nvme0n1p1 /mnt/storage
-    ```
-
-    3. 마운트 확인:
-    
-    ```bash
-    df -h
-    ```
-
-    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
-
-    4-5. 영구 마운트 설정 (재부팅 후에도 유지):
-
-    1. `/etc/fstab` 파일에 추가:
-
-    ```bash
-    echo '/dev/nvme0n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
-    ```
-
-    2. 설정 적용:
-
-    ```bash
-    sudo mount -a
-    ```
-
-    4-5. 디렉토리 권한 변경:
-
-    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
-
-    1. 디렉토리 소유권 변경:
-
-    ```bash
-    sudo chown -R $USER:$USER /mnt/storage
-    ```
-
-    2. 권한 확인:
-
-    ```bash
-    ls -ld /mnt/storage
     ```
 
 5. Git 프로젝트 클론:
