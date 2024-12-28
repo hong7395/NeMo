@@ -149,13 +149,13 @@ Ubuntu 22.04 인스턴스 생성
     sudo fdisk /dev/nvme1n1
     ```
 
-        1. `n` → 새 파티션 생성.
+    1. `n` → 새 파티션 생성.
 
-        2. `p` → 기본 파티션.
+    2. `p` → 기본 파티션.
 
-        3. 기본값(시작/끝 섹터) 그대로 Enter.
+    3. 기본값(시작/끝 섹터) 그대로 Enter.
 
-        4. `w` → 변경사항 저장 및 종료.
+    4. `w` → 변경사항 저장 및 종료.
 
     4-3. 파일 시스템 생성:
 
@@ -165,39 +165,39 @@ Ubuntu 22.04 인스턴스 생성
 
     4-4. 디스크 마운트:
 
-        1. 추가 디스크를 마운트할 디렉토리 생성:
+    1. 추가 디스크를 마운트할 디렉토리 생성:
 
-        ```bash
-        sudo mkdir /mnt/storage
-        ```
+    ```bash
+    sudo mkdir /mnt/storage
+    ```
 
-        2. 디스크 마운트:
+    2. 디스크 마운트:
 
-        ```bash
-        sudo mount /dev/nvme1n1p1 /mnt/storage
-        ```
+    ```bash
+    sudo mount /dev/nvme1n1p1 /mnt/storage
+    ```
 
-        3. 마운트 확인:
+    3. 마운트 확인:
+    
+    ```bash
+    df -h
+    ```
 
-        ```bash
-        df -h
-        ```
-
-        `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
+    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
 
     4-5. 영구 마운트 설정 (재부팅 후에도 유지):
 
-        1. `/etc/fstab` 파일에 추가:
+    1. `/etc/fstab` 파일에 추가:
 
-        ```bash
-        echo '/dev/nvme1n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
-        ```
+    ```bash
+    echo '/dev/nvme1n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    ```
 
-        2. 설정 적용:
+    2. 설정 적용:
 
-        ```bash
-        sudo mount -a
-        ```
+    ```bash
+    sudo mount -a
+    ```
 
 5. Git 프로젝트 클론:
 
