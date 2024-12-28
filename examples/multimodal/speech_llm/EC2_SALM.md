@@ -135,30 +135,27 @@ Ubuntu 22.04 인스턴스 생성
     ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
     ```
 
-4. Git 프로젝트 클론:
+4. Python 가상환경 생성 및 활성화:
 
-    ```bash
-    git clone https://github.com/hong7395/NeMo.git
-    cd NeMo
-    ```
-
-5. Python 가상환경 생성 및 활성화:
-
-    6-1. 가상환경 생성:
+    4-1. 가상환경 생성:
 
     ```bash
     python3 -m venv salm_env
     ```
 
-    6-2. 가상환경 활성화:
+    4-2. 가상환경 활성화:
 
     ```bash
     source salm_env/bin/activate
     ```
 
-6. NeMo 설치
+5. NeMo 설치
 
     ```bash
+    git clone https://github.com/hong7395/NeMo.git
+    
+    cd NeMo
+
     pip install nemo_toolkit['all']
 
     # 설치가 안된다면,
