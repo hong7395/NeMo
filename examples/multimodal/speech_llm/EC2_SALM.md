@@ -27,127 +27,45 @@ Ubuntu 22.04 인스턴스 생성
     sudo apt update && sudo apt upgrade -y
     ```
 
-2. 추가 디스크 마운트 (옵션):
-
-    2-1. 디스크 확인:
-
-    ```bash
-    lsblk
-    ```
-
-    (추가 디스크 이름 및 `UUID` 확인, 이름 예시 : `nvme0n1`)
-
-    (다만 디스크 이름은 부팅 순서에 따라 변할 수 있음. nvme0n1 -> nvme1n1 이 되는 등 ..)
-
-    2-2. 파일 시스템 생성 (`xfs` or `ext4`):
-
-    ```bash
-    # 파일 시스템 확인
-    sudo file -s /dev/nvme0n1
-    ```
-
-    출력:
-
-    ```bash
-    /dev/nvme0n1: data
-    ```
-
-    ```bash
-    # 파일 시스템 생성
-    sudo mkfs -t xfs /dev/nvme0n1
-    ```
-
-    2-3. 디스크 마운트:
-
-    1. 추가 디스크를 마운트할 디렉토리 생성:
-
-    ```bash
-    sudo mkdir /mnt/storage
-    ```
-
-    2. 디스크 마운트:
-
-    ```bash
-    sudo mount /dev/nvme0n1 /mnt/storage
-    ```
-
-    3. 마운트 확인:
-    
-    ```bash
-    df -h
-    ```
-
-    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
-
-    2-4. 영구 마운트 설정 (재부팅 후에도 유지):
-
-    1. `/etc/fstab` 파일에 추가:
-
-    ```bash
-    echo 'UUID={추가 디스크 UUID 기입} /mnt/storage xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
-    ```
-
-    2. 설정 적용:
-
-    ```bash
-    sudo mount -a
-    ```
-
-    2-5. 디렉토리 권한 변경:
-
-    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
-
-    1. 디렉토리 소유권 변경:
-
-    ```bash
-    sudo chown -R $USER:$USER /mnt/storage
-    ```
-
-    2. 권한 확인:
-
-    ```bash
-    ls -ld /mnt/storage
-    ```
-
-3. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
+2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
     sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
     ```
 
-4. NVIDIA 드라이버 및 CUDA 설치:
+3. NVIDIA 드라이버 및 CUDA 설치:
 
-    4-1. GPU 확인:
+    3-1. GPU 확인:
 
     ```bash
     lspci | grep -i nvidia
     ```
 
-    4-2. gcc 설치:
+    3-2. gcc 설치:
 
     ```bash
     sudo apt install gcc -y
     ```
 
-    4-3. Linux Kernel Header 설치:
+    3-3. Linux Kernel Header 설치:
 
     ```bash
     sudo apt install linux-headers-$(uname -r)
     ```
 
-    4-4. ubuntu-drivers 설치:
+    3-4. ubuntu-drivers 설치:
 
     ```bash
     sudo apt install ubuntu-drivers-common -y
     ```
 
-    4-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
+    3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
 
     ```bash
     ubuntu-drivers devices
     ```
 
-    4-6. 설치할 Driver 버전을 위한 Repository를 추가:
+    3-6. 설치할 Driver 버전을 위한 Repository를 추가:
 
     ```bash
     distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
@@ -158,19 +76,19 @@ Ubuntu 22.04 인스턴스 생성
     cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
     ```
 
-    4-7. nvidia-driver 설치:
+    3-7. nvidia-driver 설치:
 
     ```bash
     sudo apt install nvidia-driver-???
     ```
 
-    4-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
+    3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
 
     ```bash
     nvidia-smi
     ```
 
-    4-9. CUDA 11.8 설치:
+    3-9. CUDA 11.8 설치:
 
     ```bash
     wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
@@ -204,7 +122,7 @@ Ubuntu 22.04 인스턴스 생성
     /usr/local/cuda-11.8/extras/demo_suite/deviceQuery
     ```
 
-    4-10. cuDNN 설치:
+    3-10. cuDNN 설치:
 
     ```bash
     sudo apt-get update
@@ -217,39 +135,28 @@ Ubuntu 22.04 인스턴스 생성
     ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
     ```
 
-5. Git 프로젝트 클론:
+4. Git 프로젝트 클론:
 
     ```bash
-    mkdir -p /mnt/storage/projects
-
-    cd /mnt/storage/projects
     git clone https://github.com/hong7395/NeMo.git
     cd NeMo
     ```
 
-6. Python 가상환경 생성 및 활성화:
+5. Python 가상환경 생성 및 활성화:
 
     6-1. 가상환경 생성:
 
     ```bash
-    python3 -m venv /mnt/storage/projects/NeMo/venv
+    python3 -m venv salm_env
     ```
 
     6-2. 가상환경 활성화:
 
     ```bash
-    source /mnt/storage/projects/NeMo/venv/bin/activate
+    source salm_env/bin/activate
     ```
 
-    6-3. 가상환경에서 Python 확인:
-
-    ```bash
-    which python
-    ```
-
-    출력: `/mnt/storage/projects/repo/venv/bin/python`
-
-7. NeMo 설치
+6. NeMo 설치
 
     ```bash
     pip install nemo_toolkit['all']
@@ -258,38 +165,116 @@ Ubuntu 22.04 인스턴스 생성
     pip install nemo_toolkit['asr']
     ```
 
-    패키지들은 추가 디스크의 가상환경 내부에 설치됩니다:
+#### torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
 
-    경로: `/mnt/storage/projects/NeMo/venv/lib/python3.x/site-packages`
+1. 4GB 스왑 파일 생성:
 
-8. torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+```bash
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
 
-    8-1. 4GB 스왑 파일 생성:
+2. 스왑 활성화 확인:
+
+```bash
+free -h
+```
+
+3. Torch 설치 재시도:
+
+```bash
+pip install torch
+```
+
+4. 설치 완료 후 스왑 비활성화(선택):
+
+```bash
+sudo swapoff /swapfile
+sudo rm /swapfile
+```
+
+#### 추가 디스크 마운트 (옵션):
+
+1. 디스크 확인:
+
+```bash
+lsblk
+```
+
+(추가 디스크 이름 및 `UUID` 확인, 이름 예시 : `nvme0n1`)
+
+(다만 디스크 이름은 부팅 순서에 따라 변할 수 있음. nvme0n1 -> nvme1n1 이 되는 등 ..)
+
+2. 파일 시스템 생성 (`xfs` or `ext4`):
+
+```bash
+# 파일 시스템 확인
+sudo file -s /dev/nvme0n1
+```
+
+출력:
+
+```bash
+/dev/nvme0n1: data
+```
+
+```bash
+# 파일 시스템 생성
+sudo mkfs -t xfs /dev/nvme0n1
+```
+
+3. 디스크 마운트:
+
+    1. 추가 디스크를 마운트할 디렉토리 생성:
 
     ```bash
-    sudo fallocate -l 4G /swapfile
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
+    sudo mkdir /mnt/storage
     ```
 
-    8-2. 스왑 활성화 확인:
+    2. 디스크 마운트:
 
     ```bash
-    free -h
+    sudo mount /dev/nvme0n1 /mnt/storage
     ```
 
-    8-3. Torch 설치 재시도:
-
+    3. 마운트 확인:
+    
     ```bash
-    pip install torch
+    df -h
     ```
 
-    8-4. 설치 완료 후 스왑 비활성화(선택):
+    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
+
+4. 영구 마운트 설정 (재부팅 후에도 유지):
+
+    1. `/etc/fstab` 파일에 추가:
 
     ```bash
-    sudo swapoff /swapfile
-    sudo rm /swapfile
+    echo 'UUID={추가 디스크 UUID 기입} /mnt/storage xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    ```
+
+    2. 설정 적용:
+
+    ```bash
+    sudo mount -a
+    ```
+
+5. 디렉토리 권한 변경:
+
+    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
+
+    1. 디렉토리 소유권 변경:
+
+    ```bash
+    sudo chown -R $USER:$USER /mnt/storage
+    ```
+
+    2. 권한 확인:
+
+    ```bash
+    ls -ld /mnt/storage
     ```
 
 ## 1. 데이터셋 준비
@@ -300,17 +285,17 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 #### 단계:
 1. 데이터셋 다운로드:
     ```bash
-    cd /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data
+    cd ~/NeMo/examples/multimodal/speech_llm/data
     wget http://www.openslr.org/resources/12/test-clean.tar.gz
     ```
 2. 데이터셋 압축 해제:
     ```bash
-    tar -xvzf test-clean.tar.gz -C /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data
+    tar -xvzf test-clean.tar.gz -C ~/NeMo/examples/multimodal/speech_llm/data
     ```
 ### 1.2 JSONL 매니페스트 파일 생성
 오디오 파일과 전사 텍스트를 매핑하는 JSONL 파일을 생성합니다.
 
-(현재 위치 디렉토리 : /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data)
+(현재 위치 디렉토리 : ~/NeMo/examples/multimodal/speech_llm/data)
 
 `test_manifest.jsonl` 생성 스크립트:
 
@@ -367,7 +352,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ```
 스크립트 실행:
 ```bash
-    python /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
+    python ~/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
 
     # speech_llm 디렉터리로 돌아감
     cd ..
@@ -380,14 +365,14 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     wget https://api.ngc.nvidia.com/v2/models/nvidia/nemo/stt_en_fastconformer_transducer_large/versions/1.0.0/files/stt_en_fastconformer_transducer_large.nemo -O ./models/stt_en_fastconformer_transducer_large.nemo
 ```
 ## 3. 설정 파일 작성
-### 3.1 `salm_config_cpu.yaml` 파일
+### 3.1 `salm_config.yaml` 파일
 다음과 같이 설정 파일을 작성하고 `conf/salm` 폴더에 저장합니다:
 ```yaml
     name: salm_fastconformer_gpt_lora_tuning
 
     trainer:
     devices: 1
-    accelerator: cpu
+    accelerator: gpu
     num_nodes: 1
     precision: 16
     max_steps: 1000000
@@ -400,12 +385,12 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     pipeline_model_parallel_size: 1
     pretrained_audio_model: stt_en_fastconformer_transducer_large
     freeze_llm: true
-    restore_from_path: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
+    restore_from_path: "~/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
     save_nemo_on_validation_end: false
 
     data:
     test_ds:
-        manifest_filepath: "/mnt/storage/projects/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
+        manifest_filepath: "~/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
         prompt_template: "Q: {context}\\nA: {answer}"
         tokens_to_generate: 128
         shuffle: false
@@ -434,7 +419,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python /mnt/storage/projects/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
+    python ~/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
     ```
 2. 결과 확인:
 
