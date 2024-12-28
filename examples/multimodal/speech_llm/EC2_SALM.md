@@ -199,6 +199,22 @@ Ubuntu 22.04 인스턴스 생성
     sudo mount -a
     ```
 
+    4-5. 디렉토리 권한 변경:
+
+    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
+
+    1. 디렉토리 소유권 변경:
+
+    ```bash
+    sudo chown -R $USER:$USER /mnt/storage
+    ```
+
+    2. 권한 확인:
+
+    ```bash
+    ls -ld /mnt/storage
+    ```
+
 5. Git 프로젝트 클론:
 
     ```bash
