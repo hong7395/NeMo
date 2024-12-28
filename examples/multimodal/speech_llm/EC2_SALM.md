@@ -35,7 +35,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg ninja-build
     ```
 
 3. NVIDIA 드라이버 및 CUDA 설치:
@@ -86,20 +86,23 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     3-7. nvidia-driver 설치:
 
     ```bash
-    sudo apt install nvidia-driver-???
+    sudo apt install nvidia-driver-560
     ```
 
     3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
 
     ```bash
+    sudo reboot
+
+    sudo apt update && sudo apt upgrade -y
+
     nvidia-smi
     ```
 
-    3-9. CUDA 최신 설치:
-
+    3-9. CUDA 12.6.3 설치:
     ```bash
-    wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
-    sudo sh cuda_11.8.0_520.61.05_linux.run
+    wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux.run
+    sudo sh cuda_12.6.3_560.35.05_linux.run
     ```
 
     그래픽 드라이버가 이미 설치되어 있어 오류 발생:
@@ -112,8 +115,8 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     sudo nano ~/.bashrc
 
     # 다음 2 줄을 복사한 후, 화살표키로 .bashrc 파일 끝으로 이동한 후, 붙여넣기
-    export PATH="/usr/local/cuda-11.8/bin:$PATH"
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.8/lib64/
+    export PATH="/usr/local/cuda-12.6/bin:$PATH"
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.6/lib64/
 
     # Ctrl + O를 누른 후, 엔터를 입력하여 저장한 후, Ctrl + X를 눌려 nano 편집기를 종료
 
@@ -126,14 +129,15 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     ```bash
     nvcc -V
 
-    /usr/local/cuda-11.8/extras/demo_suite/deviceQuery
+    /usr/local/cuda-12.6/extras/demo_suite/deviceQuery
     ```
 
-    3-10. cuDNN 설치:
+    3-10. cuDNN 9.6.0 설치:
 
     ```bash
+    sudo apt update && sudo apt upgrade -y
     sudo apt-get update
-    sudo apt-get -y install cudnn-cuda-11
+    sudo apt-get -y install cudnn-cuda-12
     ```
 
     설치 확인:
@@ -165,14 +169,11 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 
     pip install --upgrade pip setuptools wheel
     pip install Cython packaging
-    pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
-    pip install nemo_toolkit['all']
+    pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu126
+    ./reinstall.sh
 
     # 설치 확인
     pip show nemo_toolkit
-
-    # 설치가 안된다면,
-    pip install nemo_toolkit['asr']
     ```
 
     참고: Pytorch 최신(2.5.1)은 안됨, mamba-ssm 설치 오류
