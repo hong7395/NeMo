@@ -139,14 +139,14 @@ Ubuntu 22.04 인스턴스 생성
     lsblk
     ```
 
-    (`nvme1n1`이 추가 디스크임을 확인)
+    (`nvme0n1`이 추가 디스크임을 확인)
 
     4-2. 디스크 파티션 생성:
 
-    만약 `nvme1n1`에 파티션이 없다면, 아래 명령으로 파티션을 생성합니다:
+    만약 `nvme0n1`에 파티션이 없다면, 아래 명령으로 파티션을 생성합니다:
 
     ```bash
-    sudo fdisk /dev/nvme1n1
+    sudo fdisk /dev/nvme0n1
     ```
 
     1. `n` → 새 파티션 생성.
@@ -160,7 +160,7 @@ Ubuntu 22.04 인스턴스 생성
     4-3. 파일 시스템 생성:
 
     ```bash
-    sudo mkfs.ext4 /dev/nvme1n1p1
+    sudo mkfs.ext4 /dev/nvme0n1p1
     ```
 
     4-4. 디스크 마운트:
@@ -174,7 +174,7 @@ Ubuntu 22.04 인스턴스 생성
     2. 디스크 마운트:
 
     ```bash
-    sudo mount /dev/nvme1n1p1 /mnt/storage
+    sudo mount /dev/nvme0n1p1 /mnt/storage
     ```
 
     3. 마운트 확인:
@@ -190,7 +190,7 @@ Ubuntu 22.04 인스턴스 생성
     1. `/etc/fstab` 파일에 추가:
 
     ```bash
-    echo '/dev/nvme1n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    echo '/dev/nvme0n1p1 /mnt/storage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
     ```
 
     2. 설정 적용:
