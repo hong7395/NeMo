@@ -114,6 +114,8 @@ Ubuntu 22.04 인스턴스 생성
     
     ```bash
     nvcc -V
+
+    /usr/local/cuda-11.8/extras/demo_suite/deviceQuery
     ```
 
     3-10. cuDNN 설치:
