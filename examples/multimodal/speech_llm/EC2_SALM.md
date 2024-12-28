@@ -209,13 +209,11 @@ Ubuntu 22.04 인스턴스 생성
     make
     ```
 
-    6-4. MNeMo Text Processing 설치:
+    6-4. NeMo Text Processing 설치:
 
     ```bash
     cd ~
-    git clone https://github.com/NVIDIA/NeMo-text-processing
-    cd NeMo-text-processing
-    ./reinstall.sh
+    pip install nemo_text_processing
     ```
 
 ## 1. 데이터셋 준비
