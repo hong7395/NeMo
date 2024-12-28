@@ -35,7 +35,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg ninja-build
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg
     ```
 
 3. NVIDIA 드라이버 및 CUDA 설치:
@@ -99,7 +99,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     nvidia-smi
     ```
 
-    3-9. CUDA 12.6.3 설치:
+    3-9. CUDA 12.3 설치:
     ```bash
     wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux.run
     sudo sh cuda_12.6.3_560.35.05_linux.run
