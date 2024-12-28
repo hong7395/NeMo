@@ -175,13 +175,6 @@ Ubuntu 22.04 인스턴스 생성
 
 6. LLM / Multimodal 추가 설치:
 
-    6-0. Ninja 설치:
-
-    ```bash
-    sudo apt-get update
-    sudo apt-get install ninja-build
-    ```
-
     6-1. Apex 설치:
 
     ```bash
