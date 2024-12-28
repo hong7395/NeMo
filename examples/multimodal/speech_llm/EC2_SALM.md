@@ -175,6 +175,13 @@ Ubuntu 22.04 인스턴스 생성
 
 6. LLM / Multimodal 추가 설치:
 
+    6-0. Ninja 설치:
+
+    ```bash
+    sudo apt-get update
+    sudo apt-get install ninja-build
+    ```
+
     6-1. Apex 설치:
 
     ```bash
@@ -187,10 +194,13 @@ Ubuntu 22.04 인스턴스 생성
 
     6-2. Transformer Engine 설치:
 
+    (cuda 11.8과 호환되는 1.9.0-ba36f90 으로 체크아웃하여 설치)
+
     ```bash
     cd ~
     git clone https://github.com/NVIDIA/TransformerEngine.git
     cd TransformerEngine
+    git checkout ba36f90
     git submodule init && git submodule update
     NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr/local/mpi pip install .
     ```
@@ -204,6 +214,15 @@ Ubuntu 22.04 인스턴스 생성
     pip install .
     cd megatron/core/datasets
     make
+    ```
+
+    6-4. MNeMo Text Processing 설치:
+
+    ```bash
+    cd ~
+    git clone https://github.com/NVIDIA/NeMo-text-processing
+    cd NeMo-text-processing
+    ./reinstall.sh
     ```
 
 ## 1. 데이터셋 준비
