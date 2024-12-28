@@ -152,131 +152,59 @@ Ubuntu 22.04 인스턴스 생성
     source ~/salm_env/bin/activate
     ```
 
-5. NeMo 설치
+5. NeMo 설치:
 
     ```bash
     git clone https://github.com/hong7395/NeMo.git
 
     cd NeMo
 
-    pip install --upgrade pip setuptools wheel Cython packaging
+    pip install --upgrade pip setuptools wheel
+    pip install Cython packaging
     pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
     pip install nemo_toolkit['all']
+
+    # 설치 확인
+    pip show nemo_toolkit
 
     # 설치가 안된다면,
     pip install nemo_toolkit['asr']
     ```
 
-#### torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+    참고: Pytorch 최신(2.5.1)은 안됨, mamba-ssm 설치 오류
 
-1. 4GB 스왑 파일 생성:
+6. LLM / Multimodal 추가 설치:
 
-```bash
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-
-2. 스왑 활성화 확인:
-
-```bash
-free -h
-```
-
-3. Torch 설치 재시도:
-
-```bash
-pip install torch
-```
-
-4. 설치 완료 후 스왑 비활성화(선택):
-
-```bash
-sudo swapoff /swapfile
-sudo rm /swapfile
-```
-
-#### 추가 디스크 마운트 (옵션):
-
-1. 디스크 확인:
-
-```bash
-lsblk
-```
-
-(추가 디스크 이름 및 `UUID` 확인, 이름 예시 : `nvme0n1`)
-
-(다만 디스크 이름은 부팅 순서에 따라 변할 수 있음. nvme0n1 -> nvme1n1 이 되는 등 ..)
-
-2. 파일 시스템 생성 (`xfs` or `ext4`):
-
-```bash
-# 파일 시스템 확인
-sudo file -s /dev/nvme0n1
-```
-
-출력:
-
-```bash
-/dev/nvme0n1: data
-```
-
-```bash
-# 파일 시스템 생성
-sudo mkfs -t xfs /dev/nvme0n1
-```
-
-3. 디스크 마운트:
-
-    1. 추가 디스크를 마운트할 디렉토리 생성:
+    6-1. Apex 설치:
 
     ```bash
-    sudo mkdir /mnt/storage
+    cd ~
+    git clone https://github.com/NVIDIA/apex.git
+    cd apex
+    # 필요하다면 특정 커밋 체크아웃
+    pip install . -v --no-build-isolation --disable-pip-version-check --no-cache-dir \
+        --config-settings "--build-option=--cpp_ext --cuda_ext --fast_layer_norm --distributed_adam"
     ```
 
-    2. 디스크 마운트:
+    6-2. Transformer Engine 설치:
 
     ```bash
-    sudo mount /dev/nvme0n1 /mnt/storage
+    cd ~
+    git clone https://github.com/NVIDIA/TransformerEngine.git
+    cd TransformerEngine
+    git submodule init && git submodule update
+    NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr/local/mpi pip install .
     ```
 
-    3. 마운트 확인:
-    
-    ```bash
-    df -h
-    ```
-
-    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
-
-4. 영구 마운트 설정 (재부팅 후에도 유지):
-
-    1. `/etc/fstab` 파일에 추가:
+    6-3. Megatron Core (Megatron-LM) 설치:
 
     ```bash
-    echo 'UUID={추가 디스크 UUID 기입} /mnt/storage xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
-    ```
-
-    2. 설정 적용:
-
-    ```bash
-    sudo mount -a
-    ```
-
-5. 디렉토리 권한 변경:
-
-    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
-
-    1. 디렉토리 소유권 변경:
-
-    ```bash
-    sudo chown -R $USER:$USER /mnt/storage
-    ```
-
-    2. 권한 확인:
-
-    ```bash
-    ls -ld /mnt/storage
+    cd ~
+    git clone https://github.com/NVIDIA/Megatron-LM.git
+    cd Megatron-LM
+    pip install .
+    cd megatron/core/datasets
+    make
     ```
 
 ## 1. 데이터셋 준비
@@ -426,3 +354,117 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 2. 결과 확인:
 
 추론 결과는 콘솔에 출력되거나 설정된 파일로 저장됩니다.
+
+
+
+#### torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
+
+1. 4GB 스왑 파일 생성:
+
+```bash
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+2. 스왑 활성화 확인:
+
+```bash
+free -h
+```
+
+3. Torch 설치 재시도:
+
+```bash
+pip install torch
+```
+
+4. 설치 완료 후 스왑 비활성화(선택):
+
+```bash
+sudo swapoff /swapfile
+sudo rm /swapfile
+```
+
+#### 추가 디스크 마운트 (옵션):
+
+1. 디스크 확인:
+
+```bash
+lsblk
+```
+
+(추가 디스크 이름 및 `UUID` 확인, 이름 예시 : `nvme0n1`)
+
+(다만 디스크 이름은 부팅 순서에 따라 변할 수 있음. nvme0n1 -> nvme1n1 이 되는 등 ..)
+
+2. 파일 시스템 생성 (`xfs` or `ext4`):
+
+```bash
+# 파일 시스템 확인
+sudo file -s /dev/nvme0n1
+```
+
+출력:
+
+```bash
+/dev/nvme0n1: data
+```
+
+```bash
+# 파일 시스템 생성
+sudo mkfs -t xfs /dev/nvme0n1
+```
+
+3. 디스크 마운트:
+
+    1. 추가 디스크를 마운트할 디렉토리 생성:
+
+    ```bash
+    sudo mkdir /mnt/storage
+    ```
+
+    2. 디스크 마운트:
+
+    ```bash
+    sudo mount /dev/nvme0n1 /mnt/storage
+    ```
+
+    3. 마운트 확인:
+    
+    ```bash
+    df -h
+    ```
+
+    `/mnt/storage` 에 추가 디스크 용량이 표시되면 성공
+
+4. 영구 마운트 설정 (재부팅 후에도 유지):
+
+    1. `/etc/fstab` 파일에 추가:
+
+    ```bash
+    echo 'UUID={추가 디스크 UUID 기입} /mnt/storage xfs defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    ```
+
+    2. 설정 적용:
+
+    ```bash
+    sudo mount -a
+    ```
+
+5. 디렉토리 권한 변경:
+
+    디렉토리를 생성한 후, 현재 사용자 계정이 해당 디렉토리를 자유롭게 사용할 수 있도록 소유권을 변경합니다:
+
+    1. 디렉토리 소유권 변경:
+
+    ```bash
+    sudo chown -R $USER:$USER /mnt/storage
+    ```
+
+    2. 권한 확인:
+
+    ```bash
+    ls -ld /mnt/storage
+    ```
