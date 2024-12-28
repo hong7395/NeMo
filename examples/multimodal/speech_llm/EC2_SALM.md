@@ -176,30 +176,42 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     pip show nemo_toolkit
     ```
 
-    참고: Pytorch 최신(2.5.1)은 안됨, mamba-ssm 설치 오류
-
 6. LLM / Multimodal 추가 설치:
+
+    6-0. 환경변수:
+    ```bash
+    export apex_commit=810ffae374a2b9cb4b5c5e28eaeca7d7998fca0c
+    export te_commit=bfe21c3d68b0a9951e5716fb520045db53419c5e
+    export mcore_commit=02871b4df8c69fac687ab6676c4246e936ce92d0
+    ```
 
     6-1. Apex 설치:
 
     ```bash
     cd ~
+    sudo apt install libnccl2=2.23.4-1+cuda12.6 libnccl-dev=2.23.4-1+cuda12.6
     git clone https://github.com/NVIDIA/apex.git
     cd apex
-    pip install . -v --no-build-isolation --disable-pip-version-check --no-cache-dir \
-        --config-settings "--build-option=--cpp_ext --cuda_ext --fast_layer_norm --distributed_adam"
+    git checkout $apex_commit
+    pip install . -v --no-build-isolation --disable-pip-version-check --no-cache-dir --config-settings "--build-option=--cpp_ext --cuda_ext --fast_layer_norm --distributed_adam --deprecated_fused_adam --group_norm"
     ```
 
-    6-2. Transformer Engine 설치:
+    6-2. MPI & Transformer Engine 설치:
 
-    (cuda 11.8과 호환되는 0.7.0-770e968 으로 체크아웃하여 설치)
+    ```bash
+    sudo apt update && sudo apt upgrade -y
+    sudo apt install openmpi-bin openmpi-common libopenmpi-dev
+
+    which mpirun
+    locate mpi.h
+    ```
 
     ```bash
     cd ~
-    git clone https://github.com/NVIDIA/TransformerEngine.git
-    cd TransformerEngine
-    git checkout 770e968
-    git submodule init && git submodule update
+    git clone https://github.com/NVIDIA/TransformerEngine.git && \
+    cd TransformerEngine && \
+    git checkout $te_commit && \
+    git submodule init && git submodule update && \
     NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr pip install .
     ```
 
