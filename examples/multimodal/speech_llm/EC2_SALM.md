@@ -33,7 +33,7 @@ Ubuntu 22.04 인스턴스 생성
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg mpich
     ```
 
 3. NVIDIA 드라이버 및 CUDA 설치:
@@ -195,7 +195,7 @@ Ubuntu 22.04 인스턴스 생성
     cd TransformerEngine
     git checkout 770e968
     git submodule init && git submodule update
-    NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr/local/mpi pip install .
+    NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr pip install .
     ```
 
     6-3. Megatron Core (Megatron-LM) 설치:
