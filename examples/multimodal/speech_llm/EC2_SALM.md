@@ -33,7 +33,7 @@ Ubuntu 22.04 인스턴스 생성
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox ffmpeg
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg
     ```
 
 3. NVIDIA 드라이버 및 CUDA 설치:
@@ -159,8 +159,8 @@ Ubuntu 22.04 인스턴스 생성
 
     cd NeMo
 
-    pip install --upgrade pip setuptools wheel packaging
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    pip install --upgrade pip setuptools wheel Cython packaging
+    pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
     pip install nemo_toolkit['all']
 
     # 설치가 안된다면,
