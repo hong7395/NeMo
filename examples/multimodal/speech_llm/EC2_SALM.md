@@ -159,6 +159,8 @@ Ubuntu 22.04 인스턴스 생성
 
     cd NeMo
 
+    pip install --upgrade pip setuptools wheel packaging
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
     pip install nemo_toolkit['all']
 
     # 설치가 안된다면,
