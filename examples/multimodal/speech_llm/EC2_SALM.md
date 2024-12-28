@@ -35,7 +35,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg mpich
+    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg
     ```
 
 3. NVIDIA 드라이버 및 CUDA 설치:
@@ -64,15 +64,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     sudo apt install ubuntu-drivers-common -y
     ```
 
-    3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
-
-    ```bash
-    ubuntu-drivers devices
-
-    sudo apt update && sudo apt upgrade -y
-    ```
-
-    3-6. 설치할 Driver 버전을 위한 Repository를 추가:
+    3-5. 설치할 Driver 버전을 위한 Repository를 추가:
 
     ```bash
     distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
@@ -81,6 +73,14 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 
     # Repository 추가된 것을 확인
     cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
+    ```
+
+    3-6. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
+
+    ```bash
+    sudo apt update && sudo apt upgrade -y
+
+    ubuntu-drivers devices
     ```
 
     3-7. nvidia-driver 설치:
