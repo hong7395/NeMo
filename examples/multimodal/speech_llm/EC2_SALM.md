@@ -91,14 +91,22 @@ Ubuntu 22.04 인스턴스 생성
     sudo sh cuda_11.8.0_520.61.05_linux.run
     ```
 
+    그래픽 드라이버가 이미 설치되어 있어 오류 발생:
+
+    `Continue 이동 후 엔터 -> accept 입력 후 엔터 -> Driver에서 스페이스바를 눌러 체크 해제 후 Install 이동 후 엔터`
+
     경로 설정:
     
     ```bash
-    gedit ~/.bashrc
+    sudo nano ~/.bashrc
 
-    export PATH="/usr/local/cuda/bin:$PATH"
-    export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+    # 다음 2 줄을 복사한 후, 화살표키로 .bashrc 파일 끝으로 이동한 후, 붙여넣기
+    export PATH="/usr/local/cuda-11.8/bin:$PATH"
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.8/lib64/
 
+    # Ctrl + O를 누른 후, 엔터를 입력하여 저장한 후, Ctrl + X를 눌려 nano 편집기를 종료
+
+    # 환경 적용을 위해 다음 명령 실행
     source ~/.bashrc
     ```
 
