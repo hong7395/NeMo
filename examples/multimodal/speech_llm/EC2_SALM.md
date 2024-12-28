@@ -121,11 +121,8 @@ Ubuntu 22.04 인스턴스 생성
     3-10. cuDNN 설치:
 
     ```bash
-    wget https://developer.nvidia.com/compute/cudnn/secure/8.6.0/local_installers/11.8/cudnn-local-repo-ubuntu2204-8.6.0.163_1.0-1_amd64.deb
-    sudo dpkg -i cudnn-local-repo-ubuntu2204-8.6.0.163_1.0-1_amd64.deb
-    sudo cp /var/cudnn-local-repo-ubuntu2204-8.6.0/cudnn-*-keyring.gpg /usr/share/keyrings/
     sudo apt-get update
-    sudo apt-get -y install cudnn
+    sudo apt-get -y install cudnn-cuda-11
     ```
 
     설치 확인:
