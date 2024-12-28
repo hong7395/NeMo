@@ -187,13 +187,13 @@ Ubuntu 22.04 인스턴스 생성
 
     6-2. Transformer Engine 설치:
 
-    (cuda 11.8과 호환되는 1.9.0-ba36f90 으로 체크아웃하여 설치)
+    (cuda 11.8과 호환되는 0.7.0-770e968 으로 체크아웃하여 설치)
 
     ```bash
     cd ~
     git clone https://github.com/NVIDIA/TransformerEngine.git
     cd TransformerEngine
-    git checkout ba36f90
+    git checkout 770e968
     git submodule init && git submodule update
     NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr/local/mpi pip install .
     ```
