@@ -19,7 +19,9 @@ Ubuntu 22.04 인스턴스 생성
 
 탄력적 IP 설정
 
-### 0.2 패키지 업데이트, NVIDIA Driver 설치, 디스크 마운트 및 프로젝트 준비
+ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
+
+### 0.2 패키지 업데이트, NVIDIA Driver 설치, 프로젝트 준비
 #### 단계:
 
 참고: ~/ = /home/ubuntu
@@ -66,6 +68,8 @@ Ubuntu 22.04 인스턴스 생성
 
     ```bash
     ubuntu-drivers devices
+
+    sudo apt update && sudo apt upgrade -y
     ```
 
     3-6. 설치할 Driver 버전을 위한 Repository를 추가:
@@ -91,7 +95,7 @@ Ubuntu 22.04 인스턴스 생성
     nvidia-smi
     ```
 
-    3-9. CUDA 11.8 설치:
+    3-9. CUDA 최신 설치:
 
     ```bash
     wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
