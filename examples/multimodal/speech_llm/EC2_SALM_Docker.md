@@ -1,6 +1,6 @@
 # EC2 - SALM 추론 가이드
 
-이 가이드는 AWS EC2 인스턴스를 세팅하고, SALM(Speech-Augmented Language Model)을 사용하여 데이터를 준비하고, 시스템을 설정하며, 추론을 실행하는 과정을 단계별로 설명합니다.
+이 가이드는 AWS EC2 인스턴스를 세팅하고, Docker를 사용하여 NeMo 환경을 세팅하고, SALM(Speech-Augmented Language Model)을 사용하여 데이터를 준비하고, 시스템을 설정하며, 추론을 실행하는 과정을 단계별로 설명합니다.
 
 ---
 
@@ -35,10 +35,10 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
 
     ```bash
-    sudo apt install -y build-essential wget curl git python3 python3-pip python3-venv sox libsndfile1 ffmpeg gcc
+    sudo apt install -y build-essential dkms
     ```
 
-3. NVIDIA 드라이버 및 CUDA 설치:
+3. NVIDIA 드라이버 설치:
 
     3-1. GPU 확인:
 
@@ -72,15 +72,13 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
 
     ```bash
-    sudo apt update && sudo apt upgrade -y
-
     ubuntu-drivers devices
     ```
 
     3-6. nvidia-driver 설치:
 
     ```bash
-    sudo apt install nvidia-driver-545
+    sudo apt install nvidia-driver-535
     ```
 
     3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
@@ -88,135 +86,78 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     ```bash
     sudo reboot
 
-    sudo apt update && sudo apt upgrade -y
-
     nvidia-smi
     ```
 
-    3-9. CUDA 12.3 설치:
+4. Docker 설치 및 NVIDIA Container Toolkit 설정:
+
+    4-1. Docker 설치:
+
     ```bash
-    wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda_12.6.3_560.35.05_linux.run
-    sudo sh cuda_12.6.3_560.35.05_linux.run
+    sudo apt install -y docker.io
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo usermod -aG docker $USER
+
+    sudo reboot
     ```
 
-    그래픽 드라이버가 이미 설치되어 있어 오류 발생:
+    4-2. NVIDIA Container Toolkit 설치:
 
-    `Continue 이동 후 엔터 -> accept 입력 후 엔터 -> Driver에서 스페이스바를 눌러 체크 해제 후 Install 이동 후 엔터`
-
-    경로 설정:
-    
     ```bash
-    sudo nano ~/.bashrc
-
-    # 다음 2 줄을 복사한 후, 화살표키로 .bashrc 파일 끝으로 이동한 후, 붙여넣기
-    export PATH="/usr/local/cuda-12.6/bin:$PATH"
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.6/lib64/
-
-    # Ctrl + O를 누른 후, 엔터를 입력하여 저장한 후, Ctrl + X를 눌려 nano 편집기를 종료
-
-    # 환경 적용을 위해 다음 명령 실행
-    source ~/.bashrc
+    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+    distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
+    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+    sudo apt install -y nvidia-container-toolkit
+    sudo systemctl restart docker
     ```
 
-    설치 확인:
-    
-    ```bash
-    nvcc -V
+    4-3. 설치 확인:
 
-    /usr/local/cuda-12.6/extras/demo_suite/deviceQuery
+    ```bash
+    docker run --gpus all --rm nvidia/cuda:11.8.0-base-ubuntu22.04 nvidia-smi
     ```
 
-    3-10. cuDNN 9.6.0 설치:
+5. NeMo 전용 컨테이너 실행:
+
+    5-0. NeMo 프로젝트 클론:
 
     ```bash
-    sudo apt update && sudo apt upgrade -y
-    sudo apt-get update
-    sudo apt-get -y install cudnn-cuda-12
-    ```
-
-    설치 확인:
-    
-    ```bash
-    ldconfig -N -v $(sed 's/:/ /' <<< $LD_LIBRARY_PATH) 2>/dev/null | grep libcudnn
-    ```
-
-4. Python 가상환경 생성 및 활성화:
-
-    4-1. 가상환경 생성:
-
-    ```bash
-    python3 -m venv ~/salm_env
-    ```
-
-    4-2. 가상환경 활성화:
-
-    ```bash
-    source ~/salm_env/bin/activate
-    ```
-
-5. NeMo 설치:
-
-    ```bash
+    cd ~
     git clone https://github.com/hong7395/NeMo.git
-
-    cd NeMo
-
-    pip install --upgrade pip setuptools wheel
-    pip install Cython packaging
-    pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
-    ./reinstall.sh
-
-    # 설치 확인
-    pip show nemo_toolkit
     ```
 
-    참고: Pytorch 최신(2.5.1)은 안됨, mamba-ssm 설치 오류
-
-6. LLM / Multimodal 추가 설치:
-
-    6-1. Apex 설치:
+    5-1. NeMo 컨테이너 다운로드:
 
     ```bash
-    cd ~
-    sudo apt install libnccl2=2.23.4-1+cuda12.6 libnccl-dev=2.23.4-1+cuda12.6
-    sudo apt update && sudo apt upgrade -y
-    git clone https://github.com/NVIDIA/apex.git
-    cd apex
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    docker pull nvcr.io/nvidia/nemo:24.05
     ```
 
-    6-2. MPI & Transformer Engine 설치:
+    5-2. 컨테이너 실행:
 
     ```bash
-    sudo apt install openmpi-bin openmpi-common libopenmpi-dev
-
-    which mpirun
-    locate mpi.h
+    docker run --gpus all -it --rm -v ~/NeMo:/NeMo --shm-size=8g \ 
+    -p 8888:8888 -p 6006:6006 --ulimit memlock=-1 --ulimit \ 
+    stack=67108864 --device=/dev/snd nvcr.io/nvidia/nemo:24.05
     ```
 
+    5-3. 컨테이너 내에서 NeMo 확인:
+
     ```bash
-    cd ~
-    git clone https://github.com/NVIDIA/TransformerEngine.git && \
-    cd TransformerEngine && \
-    git submodule init && git submodule update && \
-    NVTE_FRAMEWORK=pytorch NVTE_WITH_USERBUFFERS=1 MPI_HOME=/usr pip install .
+    python -c "import nemo; print(nemo.__version__)"
     ```
 
-    6-3. Megatron Core (Megatron-LM) 설치:
+    참고:
 
     ```bash
-    cd ~
-    git clone https://github.com/NVIDIA/Megatron-LM.git
-    pip install .
-    cd megatron/core/datasets
-    make
-    ```
+    docker ps -a  # 실행된 적 있는 컨테이너 목록 확인
+    docker start -ai <컨테이너_ID 또는 이름>  #중지된 컨테이너 재시작
+    docker exec -it <컨테이너 ID 또는 이름> bash  #실행중인 컨테이너에 접속
+    docker stop <컨테이너_ID 또는 이름>  # 컨테이너 중지
+    docker rm <컨테이너_ID 또는 이름>  # 컨테이너 삭제/종료
 
-    6-4. NeMo Text Processing 설치:
-
-    ```bash
-    cd ~
-    pip install nemo_text_processing
+    docker images  # 현재 도커 이미지 확인
+    docker rmi <IMAGE_ID>  # 도커 이미지 삭제
     ```
 
 ## 1. 데이터셋 준비
@@ -366,35 +307,3 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 2. 결과 확인:
 
 추론 결과는 콘솔에 출력되거나 설정된 파일로 저장됩니다.
-
-
-
-#### torch killed 시, 메모리 부족으로 스왑 메모리 추가 설정:
-
-1. 4GB 스왑 파일 생성:
-
-```bash
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-
-2. 스왑 활성화 확인:
-
-```bash
-free -h
-```
-
-3. Torch 설치 재시도:
-
-```bash
-pip install torch
-```
-
-4. 설치 완료 후 스왑 비활성화(선택):
-
-```bash
-sudo swapoff /swapfile
-sudo rm /swapfile
-```
