@@ -66,9 +66,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     3-2. 컨테이너 실행:
 
     ```bash
-    docker run --gpus all -it --rm -v ~/NeMo:/NeMo --shm-size=8g \ 
-    -p 8888:8888 -p 6006:6006 --ulimit memlock=-1 --ulimit \ 
-    stack=67108864 --device=/dev/snd nvcr.io/nvidia/nemo:24.05
+    docker run --gpus all -it --rm -v ~/NeMo:/NeMo --shm-size=8g -p 8888:8888 -p 6006:6006 --ulimit memlock=-1 --ulimit stack=67108864 nvcr.io/nvidia/nemo:24.05
     ```
 
     3-3. 컨테이너 내에서 NeMo 확인:
@@ -98,17 +96,17 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 #### 단계:
 1. 데이터셋 다운로드:
     ```bash
-    cd ~/NeMo/examples/multimodal/speech_llm/data
+    cd /NeMo/examples/multimodal/speech_llm/data
     wget http://www.openslr.org/resources/12/test-clean.tar.gz
     ```
 2. 데이터셋 압축 해제:
     ```bash
-    tar -xvzf test-clean.tar.gz -C ~/NeMo/examples/multimodal/speech_llm/data
+    tar -xvzf test-clean.tar.gz -C /NeMo/examples/multimodal/speech_llm/data
     ```
 ### 1.2 JSONL 매니페스트 파일 생성
 오디오 파일과 전사 텍스트를 매핑하는 JSONL 파일을 생성합니다.
 
-(현재 위치 디렉토리 : ~/NeMo/examples/multimodal/speech_llm/data)
+(현재 위치 디렉토리 : /NeMo/examples/multimodal/speech_llm/data)
 
 `test_manifest.jsonl` 생성 스크립트:
 
@@ -165,7 +163,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ```
 스크립트 실행:
 ```bash
-    python ~/NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
+    python /NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
 
     # speech_llm 디렉터리로 돌아감
     cd ..
@@ -198,12 +196,12 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     pipeline_model_parallel_size: 1
     pretrained_audio_model: stt_en_fastconformer_transducer_large
     freeze_llm: true
-    restore_from_path: "~/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
+    restore_from_path: "/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
     save_nemo_on_validation_end: false
 
     data:
     test_ds:
-        manifest_filepath: "~/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
+        manifest_filepath: "/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
         prompt_template: "Q: {context}\\nA: {answer}"
         tokens_to_generate: 128
         shuffle: false
@@ -232,7 +230,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 ## 4. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python ~/NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
+    python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
     ```
 2. 결과 확인:
 
