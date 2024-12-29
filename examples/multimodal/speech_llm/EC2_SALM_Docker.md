@@ -9,6 +9,10 @@
 ### 0.1 인스턴스 생성
 Ubuntu 22.04 인스턴스 생성
 
+AMI : Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04)
+
+-> NVIDIA Driver, Docker, NVIDIA Container Toolkit 등 설치
+
 인스턴스 : g4dn.xlarge - T4 (p2.xlarge - K80, p4d.24xlarge - A100)
 
 볼륨 : 128 + 125 GB
@@ -19,121 +23,47 @@ Ubuntu 22.04 인스턴스 생성
 
 탄력적 IP 설정
 
+보안 그룹 : 인바운드 규칙 편집 - 8888, 6006 포트 추가
+
 ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 
-### 0.2 패키지 업데이트, NVIDIA Driver 설치, 프로젝트 준비
+### 0.2 패키지 업데이트, 도커 준비, 프로젝트 준비
 #### 단계:
 
 참고: ~/ = /home/ubuntu
 
-1. EC2 인스턴스에 접속 후 패키지 목록을 업데이트합니다:
+1. EC2 인스턴스에 접속 후 패키지 목록 업데이트 및 GPU 확인:
 
     ```bash
     sudo apt update && sudo apt upgrade -y
     ```
 
-2. 기본 유틸리티 및 Python 관련 패키지를 설치합니다:
-
     ```bash
-    sudo apt install -y build-essential dkms
-    ```
-
-3. NVIDIA 드라이버 설치:
-
-    3-1. GPU 확인:
-
-    ```bash
-    lspci | grep -i nvidia
-    ```
-
-    3-2. Linux Kernel Header 설치:
-
-    ```bash
-    sudo apt install linux-headers-$(uname -r)
-    ```
-
-    3-3. ubuntu-drivers 설치:
-
-    ```bash
-    sudo apt install ubuntu-drivers-common -y
-    ```
-
-    3-4. 설치할 Driver 버전을 위한 Repository를 추가:
-
-    ```bash
-    distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
-    wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
-    sudo dpkg -i cuda-keyring_1.0-1_all.deb
-
-    # Repository 추가된 것을 확인
-    cat /etc/apt/sources.list.d/cuda-ubuntu2204-x86_64.list
-    ```
-
-    3-5. ubuntu-driver를 통해 nvidia-driver 추천 버전을 확인:
-
-    ```bash
-    ubuntu-drivers devices
-    ```
-
-    3-6. nvidia-driver 설치:
-
-    ```bash
-    sudo apt install nvidia-driver-535
-    ```
-
-    3-8. 서버 재 시작 후 Nvidia-driver 설치 확인:
-
-    ```bash
-    sudo reboot
-
     nvidia-smi
     ```
 
-4. Docker 설치 및 NVIDIA Container Toolkit 설정:
-
-    4-1. Docker 설치:
-
-    ```bash
-    sudo apt install -y docker.io
-    sudo systemctl start docker
-    sudo systemctl enable docker
-    sudo usermod -aG docker $USER
-
-    sudo reboot
-    ```
-
-    4-2. NVIDIA Container Toolkit 설치:
-
-    ```bash
-    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-    distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
-    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-    sudo apt install -y nvidia-container-toolkit
-    sudo systemctl restart docker
-    ```
-
-    4-3. 설치 확인:
+2. Docker 설치 확인:
 
     ```bash
     docker run --gpus all --rm nvidia/cuda:11.8.0-base-ubuntu22.04 nvidia-smi
     ```
 
-5. NeMo 전용 컨테이너 실행:
+3. NeMo 전용 컨테이너 실행:
 
-    5-0. NeMo 프로젝트 클론:
+    3-0. NeMo 프로젝트 클론:
 
     ```bash
     cd ~
     git clone https://github.com/hong7395/NeMo.git
     ```
 
-    5-1. NeMo 컨테이너 다운로드:
+    3-1. NeMo 컨테이너 다운로드:
 
     ```bash
     docker pull nvcr.io/nvidia/nemo:24.05
     ```
 
-    5-2. 컨테이너 실행:
+    3-2. 컨테이너 실행:
 
     ```bash
     docker run --gpus all -it --rm -v ~/NeMo:/NeMo --shm-size=8g \ 
@@ -141,7 +71,7 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
     stack=67108864 --device=/dev/snd nvcr.io/nvidia/nemo:24.05
     ```
 
-    5-3. 컨테이너 내에서 NeMo 확인:
+    3-3. 컨테이너 내에서 NeMo 확인:
 
     ```bash
     python -c "import nemo; print(nemo.__version__)"
