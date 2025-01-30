@@ -108,60 +108,7 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 
 (현재 위치 디렉토리 : /NeMo/examples/multimodal/speech_llm/data)
 
-`test_manifest.jsonl` 생성 스크립트:
-
-다음 스크립트를 `create_test_manifest.py`로 저장하세요:
-```python
-    import os
-    import json
-    from pydub.utils import mediainfo  # 오디오 길이 계산용
-    from tqdm import tqdm  # 진행도 표시
-
-    # 데이터 디렉토리 설정
-    data_dir = "./LibriSpeech/test-clean"
-    output_jsonl = "./test_manifest.jsonl"
-
-    # JSONL 생성
-    data = []
-
-    # 디렉토리 내 모든 파일 확인
-    all_files = [os.path.join(root, file) for root, _, files in os.walk(data_dir) for file in files if file.endswith(".trans.txt")]
-
-    # 진행도 표시를 위한 tqdm 사용
-    for transcript_path in tqdm(all_files, desc="Processing transcripts"):
-        with open(transcript_path, "r") as f:
-            # 'trans.txt' 파일 내 각 줄 처리
-            for line in f:
-                line = line.strip()
-                if line:
-                    parts = line.split(" ", 1)
-                    audio_id = parts[0]
-                    transcript = parts[1]
-                    audio_file = os.path.join(os.path.dirname(transcript_path), f"{audio_id}.flac")
-                    if os.path.exists(audio_file):
-                        # 오디오 길이 계산
-                        try:
-                            info = mediainfo(audio_file)
-                            duration = float(info['duration'])  # 초 단위
-                        except Exception as e:
-                            print(f"오디오 길이 계산 실패: {audio_file} - {e}")
-                            duration = None
-
-                        data.append({
-                            "audio_filepath": audio_file,
-                            "offset": 0,
-                            "duration": duration,
-                            "text": transcript
-                        })
-
-    # JSONL 저장
-    with open(output_jsonl, "w") as f:
-        for item in data:
-            f.write(json.dumps(item) + "\n")
-
-    print(f"test_manifest.jsonl 생성 완료: {output_jsonl}")
-```
-스크립트 실행:
+`test_manifest.jsonl` 생성 스크립트 실행:
 ```bash
     python /NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
 
@@ -169,68 +116,26 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     cd ..
 ```
 ## 2. 모델 준비
-### 2.1 Fast Conformer 모델 다운로드
-사전 학습된 `stt_en_fastconformer_transducer_large.nemo` 모델을 다운로드하여 models 폴더에 저장합니다:
+NGC(클라우드) 에서 사전 학습 모델 사용:
+```yaml
+model:
+  from_pretrained: "speechllm_fc_llama2_7b"  # pretrained model name on NGC or HF
+```
+
+혹은 로컬 모델 사용:
 ```bash
     mkdir models
-    wget https://api.ngc.nvidia.com/v2/models/nvidia/nemo/stt_en_fastconformer_transducer_large/versions/1.0.0/files/stt_en_fastconformer_transducer_large.nemo -O ./models/stt_en_fastconformer_transducer_large.nemo
+    wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/nemo/speechllm_fc_llama2_7b/1.23.1/files?redirect=true&path=speechllm_fc_llama2_7b.nemo' -O ./models/speechllm_fc_llama2_7b.nemo
 ```
-## 3. 설정 파일 작성
-### 3.1 `salm_config.yaml` 파일
-다음과 같이 설정 파일을 작성하고 `conf/salm` 폴더에 저장합니다:
 ```yaml
-    name: salm_fastconformer_gpt_lora_tuning
-
-    trainer:
-    devices: 1
-    accelerator: gpu
-    num_nodes: 1
-    precision: 16
-    max_steps: 1000000
-    gradient_clip_val: 1.0
-    accumulate_grad_batches: 1
-
-    model:
-    seed: 1234
-    tensor_model_parallel_size: 1
-    pipeline_model_parallel_size: 1
-    pretrained_audio_model: stt_en_fastconformer_transducer_large
-    freeze_llm: true
-    restore_from_path: "/NeMo/examples/multimodal/speech_llm/models/stt_en_fastconformer_transducer_large.nemo"
-    save_nemo_on_validation_end: false
-
-    data:
-    test_ds:
-        manifest_filepath: "/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl"
-        prompt_template: "Q: {context}\\nA: {answer}"
-        tokens_to_generate: 128
-        shuffle: false
-        num_workers: 0
-        pin_memory: true
-        max_seq_length: 2048
-        min_seq_length: 1
-        add_eos: true
-        sample_rate: 16000
-        max_duration: 24
-        min_duration: 0.1
-
-    optim:
-    name: fused_adam
-    lr: 1e-4
-    weight_decay: 0.001
-    betas:
-        - 0.9
-        - 0.98
-    sched:
-        name: CosineAnnealing
-        warmup_steps: 2000
-        min_lr: 0.0
-        constant_steps: 0
+model:
+  restore_from_path: "/NeMo/examples/multimodal/speech_llm/models/speechllm_fc_llama2_7b.nemo" # Path to an existing .nemo model you wish to add new tasks to or run inference with
 ```
-## 4. 추론 실행
+
+## 3. 추론 실행
 1. 설정 파일을 이용하여 추론 실행:
     ```bash
-    python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf/salm --config-name=salm_config.yaml
+    python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf --config-name=modular_audio_gpt_config_eval.yaml
     ```
 2. 결과 확인:
 
