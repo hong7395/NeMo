@@ -133,10 +133,89 @@ model:
 ```
 
 ## 3. 추론 실행
-1. 설정 파일을 이용하여 추론 실행:
-    ```bash
-    python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py --config-path=conf --config-name=modular_audio_gpt_config_eval.yaml
-    ```
-2. 결과 확인:
 
-추론 결과는 콘솔에 출력되거나 설정된 파일로 저장됩니다.
+### 3.1 기본 설정
+1. 테스트 데이터셋 매니페스트 경로 설정:
+```bash
+TEST_MANIFESTS="[/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl]"
+TEST_NAMES="[librispeech-test-clean]"
+```
+
+2. 출력 디렉토리 생성:
+```bash
+mkdir -p test_outputs
+```
+
+### 3.2 NGC 모델을 사용한 추론
+NGC에서 제공하는 사전 학습된 모델을 사용하여 추론을 실행합니다:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
+    model.from_pretrained="speechllm_fc_llama2_7b" \
+    model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
+    model.data.test_ds.names=$TEST_NAMES \
+    model.data.test_ds.global_batch_size=8 \
+    model.data.test_ds.micro_batch_size=8 \
+    model.data.test_ds.tokens_to_generate=256 \
+    ++inference.greedy=False \
+    ++inference.top_k=50 \
+    ++inference.top_p=0.95 \
+    ++inference.temperature=0.4 \
+    ++inference.repetition_penalty=1.2 \
+    ++model.data.test_ds.output_dir="./test_outputs"
+```
+
+### 3.3 로컬 모델을 사용한 추론
+로컬에 다운로드한 .nemo 파일을 사용하여 추론을 실행합니다:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
+    model.restore_from_path="/NeMo/examples/multimodal/speech_llm/models/speechllm_fc_llama2_7b.nemo" \
+    model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
+    model.data.test_ds.names=$TEST_NAMES \
+    model.data.test_ds.global_batch_size=8 \
+    model.data.test_ds.micro_batch_size=8 \
+    model.data.test_ds.tokens_to_generate=256 \
+    ++inference.greedy=False \
+    ++inference.top_k=50 \
+    ++inference.top_p=0.95 \
+    ++inference.temperature=0.4 \
+    ++inference.repetition_penalty=1.2 \
+    ++model.data.test_ds.output_dir="./test_outputs"
+```
+
+### 3.4 추론 매개변수 설명
+- `global_batch_size`: 전체 배치 크기
+- `micro_batch_size`: GPU당 배치 크기
+- `tokens_to_generate`: 생성할 최대 토큰 수
+- `greedy`: 탐욕적 디코딩 사용 여부
+- `top_k`: 상위 k개의 토큰만 고려
+- `top_p`: 누적 확률이 p가 될 때까지의 토큰만 고려
+- `temperature`: 출력 분포의 온도 (높을수록 더 다양한 출력)
+- `repetition_penalty`: 반복 방지를 위한 페널티
+
+### 3.5 결과 확인
+추론이 완료되면 다음과 같이 결과를 확인할 수 있습니다:
+
+1. 콘솔 출력 확인:
+   - 각 오디오에 대한 추론 결과가 실시간으로 출력됩니다
+   - 전체 데이터셋에 대한 평가 메트릭도 표시됩니다
+
+2. 출력 파일 확인:
+```bash
+ls -l test_outputs/
+cat test_outputs/predictions.txt  # 예측 결과 확인
+```
+
+### 3.6 문제 해결
+- GPU 메모리 부족 시:
+  - `micro_batch_size`를 줄여보세요
+  - `tokens_to_generate` 값을 줄여보세요
+  
+- 추론 속도가 느린 경우:
+  - `greedy=True`로 설정해보세요
+  - `top_k`와 `top_p` 값을 조정해보세요
+
+- 결과가 만족스럽지 않은 경우:
+  - `temperature` 값을 조정해보세요 (0.1-1.0 사이)
+  - `repetition_penalty` 값을 조정해보세요
