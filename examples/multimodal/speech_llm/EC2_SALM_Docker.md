@@ -94,42 +94,55 @@ ssh : ssh-keygen -R ec2-???.ap-northeast-2.compute.amazonaws.com
 LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
 
 #### 단계:
-1. 데이터셋 다운로드:
+1. 데이터 디렉토리 생성:
     ```bash
+    mkdir -p /NeMo/examples/multimodal/speech_llm/data
     cd /NeMo/examples/multimodal/speech_llm/data
+    ```
+
+2. 데이터셋 다운로드:
+    ```bash
     wget http://www.openslr.org/resources/12/test-clean.tar.gz
     ```
-2. 데이터셋 압축 해제:
+
+3. 데이터셋 압축 해제:
     ```bash
-    tar -xvzf test-clean.tar.gz -C /NeMo/examples/multimodal/speech_llm/data
+    tar -xvzf test-clean.tar.gz
     ```
+
 ### 1.2 JSONL 매니페스트 파일 생성
 오디오 파일과 전사 텍스트를 매핑하는 JSONL 파일을 생성합니다.
 
-(현재 위치 디렉토리 : /NeMo/examples/multimodal/speech_llm/data)
+1. 매니페스트 생성 스크립트 작성
 
-`test_manifest.jsonl` 생성 스크립트 실행:
-```bash
-    python /NeMo/examples/multimodal/speech_llm/data/create_test_manifest.py
+2. 스크립트 실행:
+    ```bash
+    python create_test_manifest.py
+    ```
 
-    # speech_llm 디렉터리로 돌아감
-    cd ..
-```
+3. 매니페스트 확인:
+    ```bash
+    head -n 1 test_manifest.jsonl
+    ```
+
+4. speech_llm 디렉터리로 돌아가기:
+    ```bash
+    cd /NeMo/examples/multimodal/speech_llm
+    ```
+
 ## 2. 모델 준비
-NGC(클라우드) 에서 사전 학습 모델 사용:
-```yaml
-model:
-  from_pretrained: "speechllm_fc_llama2_7b"  # pretrained model name on NGC or HF
+
+### 2.1 모델 디렉토리 생성
+```bash
+mkdir -p /NeMo/examples/multimodal/speech_llm/models
 ```
 
-혹은 로컬 모델 사용:
+### 2.2 모델 다운로드 (선택 사항)
+NGC에서 직접 모델을 사용하거나, 로컬에 다운로드할 수 있습니다:
+
 ```bash
-    mkdir models
-    wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/nemo/speechllm_fc_llama2_7b/1.23.1/files?redirect=true&path=speechllm_fc_llama2_7b.nemo' -O ./models/speechllm_fc_llama2_7b.nemo
-```
-```yaml
-model:
-  restore_from_path: "/NeMo/examples/multimodal/speech_llm/models/speechllm_fc_llama2_7b.nemo" # Path to an existing .nemo model you wish to add new tasks to or run inference with
+cd /NeMo/examples/multimodal/speech_llm/models
+wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team/nemo/speechllm_fc_llama2_7b/1.23.1/files?redirect=true&path=speechllm_fc_llama2_7b.nemo' -O speechllm_fc_llama2_7b.nemo
 ```
 
 ## 3. 추론 실행
@@ -137,56 +150,59 @@ model:
 ### 3.1 기본 설정
 1. 테스트 데이터셋 매니페스트 경로 설정:
 ```bash
+cd /NeMo/examples/multimodal/speech_llm
 TEST_MANIFESTS="[/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl]"
 TEST_NAMES="[librispeech-test-clean]"
 ```
 
 2. 출력 디렉토리 생성:
 ```bash
-mkdir -p test_outputs
+mkdir -p /NeMo/examples/multimodal/speech_llm/test_outputs
 ```
 
 ### 3.2 NGC 모델을 사용한 추론
 NGC에서 제공하는 사전 학습된 모델을 사용하여 추론을 실행합니다:
 
 ```bash
+cd /NeMo/examples/multimodal/speech_llm
 CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
     model.from_pretrained="speechllm_fc_llama2_7b" \
     model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
     model.data.test_ds.names=$TEST_NAMES \
-    model.data.test_ds.global_batch_size=8 \
-    model.data.test_ds.micro_batch_size=8 \
+    model.data.test_ds.global_batch_size=1 \
+    model.data.test_ds.micro_batch_size=1 \
     model.data.test_ds.tokens_to_generate=256 \
     ++inference.greedy=False \
     ++inference.top_k=50 \
     ++inference.top_p=0.95 \
     ++inference.temperature=0.4 \
     ++inference.repetition_penalty=1.2 \
-    ++model.data.test_ds.output_dir="./test_outputs"
+    ++model.data.test_ds.output_dir="/NeMo/examples/multimodal/speech_llm/test_outputs"
 ```
 
 ### 3.3 로컬 모델을 사용한 추론
 로컬에 다운로드한 .nemo 파일을 사용하여 추론을 실행합니다:
 
 ```bash
+cd /NeMo/examples/multimodal/speech_llm
 CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
     model.restore_from_path="/NeMo/examples/multimodal/speech_llm/models/speechllm_fc_llama2_7b.nemo" \
     model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
     model.data.test_ds.names=$TEST_NAMES \
-    model.data.test_ds.global_batch_size=8 \
-    model.data.test_ds.micro_batch_size=8 \
+    model.data.test_ds.global_batch_size=1 \
+    model.data.test_ds.micro_batch_size=1 \
     model.data.test_ds.tokens_to_generate=256 \
     ++inference.greedy=False \
     ++inference.top_k=50 \
     ++inference.top_p=0.95 \
     ++inference.temperature=0.4 \
     ++inference.repetition_penalty=1.2 \
-    ++model.data.test_ds.output_dir="./test_outputs"
+    ++model.data.test_ds.output_dir="/NeMo/examples/multimodal/speech_llm/test_outputs"
 ```
 
 ### 3.4 추론 매개변수 설명
-- `global_batch_size`: 전체 배치 크기
-- `micro_batch_size`: GPU당 배치 크기
+- `global_batch_size`: 전체 배치 크기 (T4 GPU에서는 1로 설정)
+- `micro_batch_size`: GPU당 배치 크기 (T4 GPU에서는 1로 설정)
 - `tokens_to_generate`: 생성할 최대 토큰 수
 - `greedy`: 탐욕적 디코딩 사용 여부
 - `top_k`: 상위 k개의 토큰만 고려
@@ -203,19 +219,23 @@ CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
 
 2. 출력 파일 확인:
 ```bash
-ls -l test_outputs/
-cat test_outputs/predictions.txt  # 예측 결과 확인
+ls -l /NeMo/examples/multimodal/speech_llm/test_outputs/
+cat /NeMo/examples/multimodal/speech_llm/test_outputs/predictions_librispeech-test-clean.txt  # 예측 결과 확인
 ```
 
 ### 3.6 문제 해결
 - GPU 메모리 부족 시:
-  - `micro_batch_size`를 줄여보세요
-  - `tokens_to_generate` 값을 줄여보세요
+  - `micro_batch_size`를 1로 설정하세요 (T4 GPU에서는 필수)
+  - `tokens_to_generate` 값을 줄여보세요 (128 또는 64로)
   
 - 추론 속도가 느린 경우:
   - `greedy=True`로 설정해보세요
-  - `top_k`와 `top_p` 값을 조정해보세요
+  - 더 작은 데이터셋으로 테스트해보세요 (처음 10개 항목만)
 
 - 결과가 만족스럽지 않은 경우:
   - `temperature` 값을 조정해보세요 (0.1-1.0 사이)
   - `repetition_penalty` 값을 조정해보세요
+
+- 모델 로드 오류 발생 시:
+  - NGC에서 직접 모델을 사용하는 방식(`model.from_pretrained`)을 시도해보세요
+  - 로컬 모델 경로가 정확한지 확인하세요
