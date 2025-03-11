@@ -125,9 +125,9 @@ LibriSpeech의 `test-clean` 데이터셋을 사용합니다.
     head -n 1 test_manifest.jsonl
     ```
 
-4. speech_llm 디렉터리로 돌아가기:
+4. NeMo 디렉터리로 돌아가기:
     ```bash
-    cd /NeMo/examples/multimodal/speech_llm
+    cd /NeMo
     ```
 
 ## 2. 모델 준비
@@ -150,7 +150,7 @@ wget --content-disposition 'https://api.ngc.nvidia.com/v2/models/org/nvidia/team
 ### 3.1 기본 설정
 1. 테스트 데이터셋 매니페스트 경로 설정:
 ```bash
-cd /NeMo/examples/multimodal/speech_llm
+cd /NeMo
 TEST_MANIFESTS="[/NeMo/examples/multimodal/speech_llm/data/test_manifest.jsonl]"
 TEST_NAMES="[librispeech-test-clean]"
 ```
@@ -160,32 +160,59 @@ TEST_NAMES="[librispeech-test-clean]"
 mkdir -p /NeMo/examples/multimodal/speech_llm/test_outputs
 ```
 
+3. 필요한 패키지 설치
+```bash
+apt-get update && apt-get install -y libsndfile1 ffmpeg
+pip install Cython packaging
+pip install nemo_toolkit['all']
+
+# Lightning 관련 패키지 설치
+pip install -r /NeMo/requirements/requirements_lightning.txt
+
+# ASR 관련 패키지 설치 (lhotse 포함)
+pip install -r /NeMo/requirements/requirements_asr.txt
+
+# 멀티모달 패키지 설치
+pip install -r /NeMo/requirements/requirements_multimodal.txt
+
+# OpenCV 버전 확인 및 설치
+pip uninstall -y opencv-python opencv-python-headless
+pip install opencv-python==4.8.0.76 opencv-python-headless==4.8.0.76
+
+# Transformers 버전 확인 및 설치
+pip uninstall -y transformers
+pip install transformers==4.35.0
+
+# HuggingFace Hub 업그레이드
+pip install --upgrade huggingface_hub
+```
+
 ### 3.2 NGC 모델을 사용한 추론
 NGC에서 제공하는 사전 학습된 모델을 사용하여 추론을 실행합니다:
 
 ```bash
-cd /NeMo/examples/multimodal/speech_llm
-CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
-    model.from_pretrained="speechllm_fc_llama2_7b" \
-    model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
-    model.data.test_ds.names=$TEST_NAMES \
-    model.data.test_ds.global_batch_size=1 \
-    model.data.test_ds.micro_batch_size=1 \
-    model.data.test_ds.tokens_to_generate=256 \
-    ++inference.greedy=False \
-    ++inference.top_k=50 \
-    ++inference.top_p=0.95 \
-    ++inference.temperature=0.4 \
-    ++inference.repetition_penalty=1.2 \
-    ++model.data.test_ds.output_dir="/NeMo/examples/multimodal/speech_llm/test_outputs"
+cd /NeMo
+CUDA_VISIBLE_DEVICES=0 python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py \
+  model.from_pretrained="speechllm_fc_llama2_7b" \
+  +model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
+  +model.data.test_ds.names=$TEST_NAMES \
+  model.data.test_ds.global_batch_size=1 \
+  model.data.test_ds.micro_batch_size=1 \
+  model.data.test_ds.tokens_to_generate=256 \
+  ++inference.greedy=False \
+  ++inference.top_k=50 \
+  ++inference.top_p=0.95 \
+  ++inference.temperature=0.4 \
+  ++inference.repetition_penalty=1.2 \
+  +model.data.test_ds.output_dir="/NeMo/examples/multimodal/speech_llm/test_outputs"
 ```
 
 ### 3.3 로컬 모델을 사용한 추론
 로컬에 다운로드한 .nemo 파일을 사용하여 추론을 실행합니다:
 
 ```bash
-cd /NeMo/examples/multimodal/speech_llm
-CUDA_VISIBLE_DEVICES=0 python modular_audio_gpt_eval.py \
+cd /NeMo
+CUDA_VISIBLE_DEVICES=0 python /NeMo/examples/multimodal/speech_llm/modular_audio_gpt_eval.py \
     model.restore_from_path="/NeMo/examples/multimodal/speech_llm/models/speechllm_fc_llama2_7b.nemo" \
     model.data.test_ds.manifest_filepath=$TEST_MANIFESTS \
     model.data.test_ds.names=$TEST_NAMES \
